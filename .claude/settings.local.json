@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node server.js)",
+      "Bash(curl -s http://localhost:3001/api/screen)",
+      "Bash(kill %1)",
+      "Bash(node -e ' *)"
+    ]
+  }
+}
