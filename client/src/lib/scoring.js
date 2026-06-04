@@ -112,7 +112,8 @@ export const METRICS = [
     financialUnit: 'x',
     tooltip: {
       header: 'Growth Value: PEG Ratio',
-      what: 'P/E divided by revenue growth rate — adjusts valuation for how fast the company is growing. A company at 40x P/E growing 50% is cheaper than one at 15x P/E growing 5%.',
+      what: 'What you\'re paying relative to how fast the business is growing.',
+      detail: 'P/E divided by revenue growth rate — a company at 40x P/E growing 50% is cheaper than one at 15x P/E growing 5%.',
       formula: 'P/E ÷ YoY Revenue Growth %',
       ranges: [
         { label: '< 1x', color: 'green', meaning: 'Undervalued relative to growth' },
@@ -132,7 +133,8 @@ export const METRICS = [
     financialUnit: 'x',
     tooltip: {
       header: 'Earnings Price: P/E (ttm)',
-      what: 'What you\'re paying for each dollar of last year\'s earnings. Trailing — based on actual filed numbers, not analyst estimates.',
+      what: 'What you\'re paying per dollar of profit.',
+      detail: 'Trailing — based on actual filed numbers, not analyst estimates.',
       formula: 'Market Cap / Last FY Net Income',
       ranges: [
         { label: '< 15x', color: 'green', meaning: 'Historically cheap' },
