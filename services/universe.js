@@ -57,7 +57,7 @@ export function isOTC(exchange) {
 // Pre-screen the universe on EDGAR metrics, plus an optional market-cap filter
 // (using prices populated by the batch price job). Returns matching company
 // records capped to `limit` (highest ROIC first).
-export function screenUniverse(filters = {}, limit = 40) {
+export function screenUniverse(filters = {}) {
   const u = loadUniverse();
   const { minROIC, maxDebtToEbitda, minGrowth, minMktCap, maxMktCap, sector } = filters;
   const needsQuotes = minMktCap != null || maxMktCap != null || sector;
@@ -83,7 +83,5 @@ export function screenUniverse(filters = {}, limit = 40) {
     return true;
   });
 
-  // Rank by ROIC as a quality proxy before the price-based enrichment step
-  matches.sort((a, b) => (b.metrics.roic ?? -Infinity) - (a.metrics.roic ?? -Infinity));
-  return matches.slice(0, limit);
+  return matches;
 }

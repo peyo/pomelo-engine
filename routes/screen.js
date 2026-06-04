@@ -12,18 +12,14 @@ router.get('/', async (req, res) => {
     const keys = keysFromReq(req);
     const num = k => (req.query[k] != null && req.query[k] !== '' ? Number(req.query[k]) : undefined);
 
-    // EDGAR-metric + market-cap filters (applied against the cached universe).
-    // minMktCap uses prices populated by the batch price job, so it acts as a
-    // true pre-screen before the top-N candidate cap.
     const edgarFilters = {
       minROIC: num('minROIC'),
       maxDebtToEbitda: num('maxDebtToEbitda'),
       minGrowth: num('minGrowth'),
       minMktCap: num('minMktCap'),
       maxMktCap: num('maxMktCap'),
-      sector: req.query.sector || undefined, // pre-screen: top-N from within sector
+      sector: req.query.sector || undefined,
     };
-    // Price-based filters (applied after enrichment)
     const maxPE = num('maxPE');
     const maxPEG = num('maxPEG');
     const limit = num('limit') ?? 40;
@@ -33,11 +29,14 @@ router.get('/', async (req, res) => {
       return res.json({ stocks: [], universeReady: false, count: 0 });
     }
 
-    // 1. Pre-screen the universe on EDGAR metrics (+ size)
-    const candidates = screenUniverse(edgarFilters, limit);
+    // 1. Pre-screen on EDGAR metrics — no candidate cap here. We score
+    //    everyone and let total score determine the final top-N. The old
+    //    ROIC-ranked cap caused high-scoring companies to be excluded when
+    //    a higher-ROIC but lower-total-score company took their slot.
+    const candidates = screenUniverse(edgarFilters);
 
-    // 2. Enrich with prices. Prefer the shared cache (populated by the price
-    //    job); only spend a live BYOK call on tickers the cache is missing.
+    // 2. Enrich ALL survivors from the shared price cache (free — just a
+    //    dict lookup). Only fall back to a live BYOK call for cache misses.
     const cached = loadCachedQuotes();
     const quotes = {};
     const missing = [];
@@ -50,9 +49,8 @@ router.get('/', async (req, res) => {
       enrichment = await getQuotes(missing, keys);
       Object.assign(quotes, enrichment.quotes);
     }
-    const pricesAvailable = Object.keys(quotes).length > 0;
 
-    // 3. Compute full metric set + score
+    // 3. Score all candidates on all 5 metrics
     let stocks = candidates.map(c => {
       const quote = quotes[c.ticker];
       const metrics = quote
@@ -66,9 +64,8 @@ router.get('/', async (req, res) => {
         price: quote?.price ?? null,
         mktCap: quote?.mktCap ?? null,
         fiscalYear: c.fiscalYear,
-        // metric fields consumed by the scorer / UI
         peRatio: metrics.peRatio ?? null,
-        forwardPE: null, // free tier has no forward estimates; trailing only
+        forwardPE: null,
         evToEbitda: metrics.evToEbitda ?? null,
         pegRatio: metrics.pegRatio ?? null,
         roic: sanitizeRoic(c.metrics.roic),
@@ -84,15 +81,15 @@ router.get('/', async (req, res) => {
       return stock;
     });
 
-    // 4. Apply post-enrichment filters
-    // Drop OTC stocks that weren't caught by the universe pre-screen (i.e.
-    // unpriced companies that just got a fresh quote with exchange data).
+    // 4. Post-enrichment filters then rank by total score, return top-N
     stocks = stocks.filter(s => !isOTC(quotes[s.symbol]?.exchange));
     if (maxPE != null) stocks = stocks.filter(s => s.peRatio != null && s.peRatio <= maxPE);
     if (maxPEG != null) stocks = stocks.filter(s => s.pegRatio != null && s.pegRatio <= maxPEG);
 
     stocks.sort((a, b) => b.scores.total - a.scores.total);
+    stocks = stocks.slice(0, limit); // cap after scoring, not before
 
+    const pricesAvailable = Object.keys(quotes).length > 0;
     res.json({
       stocks,
       universeReady: true,

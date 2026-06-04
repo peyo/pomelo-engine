@@ -69,23 +69,23 @@ function FunnelTooltip({ count, shown, limit }) {
             <li className="flex gap-2">
               <span className="text-indigo-400 font-semibold">3.</span>
               <span className="text-slate-400">
-                Survivors are ranked by ROIC and the <strong className="text-slate-200">top {limit}</strong> are
-                kept (adjustable via <strong className="text-slate-200">Candidates</strong>) — this cap keeps us
-                within the free pricing-API rate limit.
+                All survivors are <strong className="text-slate-200">enriched from the price cache</strong> —
+                P/E, EV/EBITDA, PEG, and FCF yield computed instantly from stored prices.
               </span>
             </li>
             <li className="flex gap-2">
               <span className="text-emerald-400 font-semibold">4.</span>
               <span className="text-slate-400">
-                <strong className="text-slate-200">Live enrichment</strong> — only those 40 get a live
-                price/market-cap lookup, used to compute P/E, EV/EBITDA, PEG and FCF yield.
+                All enriched companies are <strong className="text-slate-200">scored on all 5 metrics</strong> and
+                ranked by total score — so the best overall companies float to the top, not just the
+                highest-ROIC ones.
               </span>
             </li>
             <li className="flex gap-2">
               <span className="text-emerald-400 font-semibold">5.</span>
               <span className="text-slate-400">
-                Your <strong className="text-slate-200">live-valuation filters</strong> (Max P/E, Max PEG,
-                Sector) then trim further, leaving the <strong className="text-slate-200">{shown}</strong> shown.
+                The top <strong className="text-slate-200">{limit}</strong> by total score are shown
+                (adjustable via <strong className="text-slate-200">Candidates</strong>).
               </span>
             </li>
           </ol>

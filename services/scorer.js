@@ -47,7 +47,7 @@ function scoreEV(v) {
 }
 
 function scorePEG(v) {
-  if (v == null) return 1; // neutral when unavailable
+  if (v == null) return 0;
   if (v < 1) return 2;
   if (v <= 2) return 1;
   return 0;
