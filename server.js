@@ -68,5 +68,12 @@ app.get('/api/health', (_req, res) => res.json({ status: 'ok' }));
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`API running on http://localhost:${PORT}`);
+
+  // Check on startup
   scheduleAutoRefresh();
+
+  // Then check every hour — if data has crossed the stale threshold since
+  // the last check, kick off the job. Safe to call repeatedly; jobs won't
+  // double-run because the file mtime resets when the job writes its output.
+  setInterval(scheduleAutoRefresh, 60 * 60 * 1000);
 });
