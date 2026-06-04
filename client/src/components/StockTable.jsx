@@ -60,6 +60,30 @@ function slotValue(stock, m) {
 
 const PRICE_DEPENDENT = new Set(['cashQuality', 'wholeBusiness', 'growthValue', 'earningsPrice']);
 
+function Th({ label, sortKey, tooltip, width, activeSort, onSort }) {
+  return (
+    <th
+      style={width ? { width } : undefined}
+      className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider select-none whitespace-nowrap"
+    >
+      <div className="flex items-center gap-0.5">
+        <span
+          className={sortKey ? 'cursor-pointer hover:text-slate-300 transition-colors' : ''}
+          onClick={() => sortKey && onSort(sortKey)}
+        >
+          {label}
+        </span>
+        {tooltip && <MetricTooltip tooltip={tooltip} />}
+        {sortKey && activeSort.key === sortKey && (
+          <span className="text-[var(--pomelo)] pointer-events-none">
+            {activeSort.dir === -1 ? '↓' : '↑'}
+          </span>
+        )}
+      </div>
+    </th>
+  );
+}
+
 export default function StockTable({ stocks, onSelect, loading = false }) {
   const [sort, setSort] = useState({ key: 'normalizedScore', dir: -1 });
 
@@ -80,28 +104,14 @@ export default function StockTable({ stocks, onSelect, loading = false }) {
     );
   };
 
-  const Th = ({ label, sortKey, tooltip, width }) => (
-    <th
-      style={width ? { width } : undefined}
-      className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider cursor-pointer hover:text-slate-300 transition-colors select-none whitespace-nowrap"
-      onClick={() => sortKey && toggleSort(sortKey)}
-    >
-      {label}
-      {tooltip && <MetricTooltip tooltip={tooltip} />}
-      <span className="inline-block w-3 ml-1 text-[var(--pomelo)]">
-        {sortKey && sort.key === sortKey ? (sort.dir === -1 ? '↓' : '↑') : ''}
-      </span>
-    </th>
-  );
-
   return (
     <div className="overflow-x-auto">
       <table className="w-full border-collapse table-fixed min-w-[1080px]">
         <thead>
           <tr className="border-b border-slate-800">
-            <Th label="Company" width="14%" />
-            <Th label="Sector" width="9%" />
-            <Th label="Score" sortKey="normalizedScore" width="8%" tooltip={{
+            <Th label="Company" width="14%" activeSort={sort} onSort={toggleSort} />
+            <Th label="Sector" width="9%" activeSort={sort} onSort={toggleSort} />
+            <Th label="Score" sortKey="normalizedScore" width="8%" activeSort={sort} onSort={toggleSort} tooltip={{
               what: 'Quantitative score only — based on the 5 financial metrics. The purple +6 shows how many additional points are available from the qualitative analysis (business model, management, industry structure).',
               ranges: [
                 { label: '≥ 70%', color: 'green', meaning: 'Attractive' },
@@ -110,12 +120,12 @@ export default function StockTable({ stocks, onSelect, loading = false }) {
               ],
               trap: 'Run "Deep dive" on any company to add the qualitative score and see the full picture.',
             }} />
-            <Th key="cashQuality"   label="Cash Flow"      sortKey="cashQuality"   tooltip={METRICS[0].tooltip} width="10%" />
-            <Th key="efficiency"    label="Efficiency"     sortKey="efficiency"    tooltip={METRICS[1].tooltip} width="10%" />
-            <Th key="wholeBusiness" label="Full Price"      sortKey="wholeBusiness" tooltip={METRICS[2].tooltip} width="10%" />
-            <Th key="growthValue"   label="Growth Value"   sortKey="growthValue"   tooltip={METRICS[3].tooltip} width="11%" />
-            <Th key="earningsPrice" label="Earnings Price" sortKey="earningsPrice" tooltip={METRICS[4].tooltip} width="11%" />
-            <Th label="Action" width="10%" />
+            <Th key="cashQuality"   label="Cash Flow"      sortKey="cashQuality"   tooltip={METRICS[0].tooltip} width="10%" activeSort={sort} onSort={toggleSort} />
+            <Th key="efficiency"    label="Efficiency"     sortKey="efficiency"    tooltip={METRICS[1].tooltip} width="10%" activeSort={sort} onSort={toggleSort} />
+            <Th key="wholeBusiness" label="Full Price"      sortKey="wholeBusiness" tooltip={METRICS[2].tooltip} width="10%" activeSort={sort} onSort={toggleSort} />
+            <Th key="growthValue"   label="Growth Value"   sortKey="growthValue"   tooltip={METRICS[3].tooltip} width="11%" activeSort={sort} onSort={toggleSort} />
+            <Th key="earningsPrice" label="Earnings Price" sortKey="earningsPrice" tooltip={METRICS[4].tooltip} width="11%" activeSort={sort} onSort={toggleSort} />
+            <Th label="Action" width="10%" activeSort={sort} onSort={toggleSort} />
           </tr>
         </thead>
         <tbody>
