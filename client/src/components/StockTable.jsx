@@ -2,14 +2,25 @@ import { useState } from 'react';
 import MetricTooltip from './MetricTooltip';
 import { METRICS, verdict, scoreColor } from '../lib/scoring';
 
-function fmt(v, unit) {
-  if (v == null) return <span className="text-slate-600">—</span>;
+// notPriced=true  → company not yet in the price cache  → ⋯
+// notPriced=false → priced but metric is undefined       → —
+function fmt(v, unit, notPriced = false) {
+  if (v == null) {
+    return notPriced
+      ? <span className="text-slate-600" title="Not yet priced — price job still running">⋯</span>
+      : <span className="text-slate-700">—</span>;
+  }
   return `${typeof v === 'number' ? v.toFixed(1) : v}${unit}`;
 }
 
-function ScoreDot({ score }) {
-  const colors = ['bg-red-500', 'bg-yellow-500', 'bg-green-500'];
-  return <span className={`inline-block w-2 h-2 rounded-full ${colors[score]}`} />;
+const DOT_COLORS_3 = ['bg-red-500', 'bg-yellow-500', 'bg-green-500', 'bg-sky-400'];
+const DOT_COLORS_2 = ['bg-red-500', 'bg-yellow-500', 'bg-green-500'];
+
+function ScoreDot({ score, max = 2 }) {
+  const color = max === 3
+    ? (DOT_COLORS_3[score] ?? 'bg-slate-600')
+    : (score / max >= 0.75 ? DOT_COLORS_2[2] : score / max >= 0.4 ? DOT_COLORS_2[1] : DOT_COLORS_2[0]);
+  return <span className={`inline-block w-2 h-2 rounded-full ${color}`} />;
 }
 
 // Maps a sortable column key to the stock object's actual field. Metric keys
@@ -89,7 +100,7 @@ export default function StockTable({ stocks, onSelect, loading = false }) {
                 </td>
                 <td className="px-4 py-4">
                   <div className="flex items-center gap-2">
-                    <span className={`text-lg font-bold ${scoreColor(stock.scores?.total ?? 0, 16)}`}>
+                    <span className={`text-lg font-bold ${scoreColor(stock.scores?.total ?? 0, 17)}`}>
                       {stock.scores?.total ?? '—'}
                     </span>
                     <span className={`text-xs px-2 py-0.5 rounded-full border ${v.color}`}>
@@ -103,6 +114,7 @@ export default function StockTable({ stocks, onSelect, loading = false }) {
                     : m.key === 'peg' ? stock.pegRatio
                     : stock[m.key === 'fcfYield' ? 'fcfYield' : m.key === 'evToEbitda' ? 'evToEbitda' : m.key === 'roic' ? 'roic' : m.key];
                   const s = stock.quantScores?.[m.key];
+                  const notPriced = PRICE_KEYS.has(m.key) && !stock.hasLiveData;
                   // Shimmer price-dependent cells while a screen request is in flight.
                   if (loading && PRICE_KEYS.has(m.key)) {
                     return (
@@ -114,8 +126,8 @@ export default function StockTable({ stocks, onSelect, loading = false }) {
                   return (
                     <td key={m.key} className="px-4 py-4">
                       <div className="flex items-center gap-1.5">
-                        {s != null && <ScoreDot score={s} />}
-                        <span className="text-sm text-slate-300">{fmt(raw, m.unit)}</span>
+                        {s != null && <ScoreDot score={s} max={m.key === 'fcfYield' ? 3 : 2} />}
+                        <span className="text-sm text-slate-300">{fmt(raw, m.unit, notPriced)}</span>
                       </div>
                     </td>
                   );

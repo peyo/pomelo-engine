@@ -1,10 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { qualifyStock } from '../lib/api';
 import { METRICS, QUAL_CATEGORIES, scoreColor } from '../lib/scoring';
 import ScoreBar from './ScoreBar';
 import MetricTooltip from './MetricTooltip';
 
-const scoreBarColor = score => ['bg-red-500', 'bg-yellow-500', 'bg-green-500'][score] ?? 'bg-slate-600';
+function scoreBarColor(score, max = 2) {
+  if (max === 3) return ['bg-red-500', 'bg-yellow-500', 'bg-green-500', 'bg-sky-400'][score] ?? 'bg-slate-600';
+  return ['bg-red-500', 'bg-yellow-500', 'bg-green-500'][score] ?? 'bg-slate-600';
+}
 
 // Scale market cap to T / B / M so small-caps don't round to "$0B".
 function fmtMktCap(v) {
@@ -19,20 +22,31 @@ export default function StockDetail({ stock, onClose }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  // Capture the original table stock once on mount so it's always available
+  // as a fallback, even if the qualify response omits price-based fields.
+  const baseStock = useRef(stock);
 
   useEffect(() => {
     setLoading(true);
     setError(null);
+    setData(null);
+    baseStock.current = stock;
     qualifyStock(stock.symbol)
       .then(setData)
       .catch(e => setError(e.response?.data?.error ?? e.message))
       .finally(() => setLoading(false));
   }, [stock.symbol]);
 
-  const s = data?.stock ?? stock;
-  const qs = data?.quantScores ?? stock.quantScores;
+  // Merge qualify stock with original: prefer qualify values, keep original
+  // for any field that qualify returned null (e.g. price not yet cached).
+  const s = data?.stock
+    ? Object.fromEntries(
+        Object.entries(data.stock).map(([k, v]) => [k, v ?? baseStock.current[k]])
+      )
+    : baseStock.current;
+  const qs = data?.quantScores ?? baseStock.current.quantScores;
   const qual = data?.qualScores;
-  const scores = data?.scores ?? stock.scores;
+  const scores = data?.scores ?? baseStock.current.scores;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
@@ -46,7 +60,7 @@ export default function StockDetail({ stock, onClose }) {
           <div className="flex items-center gap-4">
             {scores && (
               <div className="text-right">
-                <p className={`text-3xl font-bold ${scoreColor(scores.total, 16)}`}>{scores.total}<span className="text-lg text-slate-500">/16</span></p>
+                <p className={`text-3xl font-bold ${scoreColor(scores.total, 17)}`}>{scores.total}<span className="text-lg text-slate-500">/17</span></p>
                 <p className="text-xs text-slate-500">Total Score</p>
               </div>
             )}
@@ -86,7 +100,7 @@ export default function StockDetail({ stock, onClose }) {
                       <MetricTooltip tooltip={m.tooltip} />
                     </span>
                     <div className="flex-1">
-                      <ScoreBar score={sc} max={2} color={scoreBarColor(sc)} />
+                      <ScoreBar score={sc} max={m.key === 'fcfYield' ? 3 : 2} color={scoreBarColor(sc, m.key === 'fcfYield' ? 3 : 2)} />
                     </div>
                     <span className="text-sm text-slate-400 w-16 text-right shrink-0">
                       {raw != null ? `${raw.toFixed(1)}${m.unit}` : '—'}
@@ -95,7 +109,7 @@ export default function StockDetail({ stock, onClose }) {
                 );
               })}
               <div className="border-t border-slate-700 pt-3">
-                <ScoreBar score={scores?.quant ?? 0} max={10} label="Quant total" color="bg-indigo-500" />
+                <ScoreBar score={scores?.quant ?? 0} max={11} label="Quant total" color="bg-indigo-500" />
               </div>
             </div>
           </div>
@@ -143,7 +157,7 @@ export default function StockDetail({ stock, onClose }) {
                   );
                 })}
                 <div className="rounded-xl bg-slate-800/50 p-4">
-                  <ScoreBar score={scores?.total ?? 0} max={16} label="Total score" color={scoreColor(scores?.total ?? 0, 16).replace('text-', 'bg-')} />
+                  <ScoreBar score={scores?.total ?? 0} max={17} label="Total score" color={scoreColor(scores?.total ?? 0, 17).replace('text-', 'bg-')} />
                 </div>
               </div>
             </div>

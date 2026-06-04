@@ -1,5 +1,5 @@
 {
-  "name": "stock-scout",
+  "name": "pomelo",
   "version": "1.0.0",
   "main": "index.js",
   "type": "module",
@@ -16,7 +16,7 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "AI-powered stock discovery engine",
+  "description": "Pomelo — AI-powered stock discovery engine",
   "dependencies": {
     "@anthropic-ai/sdk": "^0.100.1",
     "axios": "^1.17.0",

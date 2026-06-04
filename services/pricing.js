@@ -82,6 +82,7 @@ async function fetchFinnhub(ticker, token) {
     symbol: ticker,
     companyName: data.name ?? ticker,
     sector: data.finnhubIndustry ?? null,
+    exchange: data.exchange ?? null,
     price,
     mktCap,
   };

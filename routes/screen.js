@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { screenUniverse, universeStats } from '../services/universe.js';
+import { screenUniverse, universeStats, isOTC } from '../services/universe.js';
 import { getQuotes, hasLivePricing, loadCachedQuotes } from '../services/pricing.js';
 import { keysFromReq } from '../services/keys.js';
 import { computeMetrics } from '../services/edgarFacts.js';
@@ -21,11 +21,11 @@ router.get('/', async (req, res) => {
       minGrowth: num('minGrowth'),
       minMktCap: num('minMktCap'),
       maxMktCap: num('maxMktCap'),
+      sector: req.query.sector || undefined, // pre-screen: top-N from within sector
     };
     // Price-based filters (applied after enrichment)
     const maxPE = num('maxPE');
     const maxPEG = num('maxPEG');
-    const sector = req.query.sector || undefined;
     const limit = num('limit') ?? 40;
 
     const stats = universeStats();
@@ -84,8 +84,10 @@ router.get('/', async (req, res) => {
       return stock;
     });
 
-    // 4. Apply price-based + sector filters post-enrichment
-    if (sector) stocks = stocks.filter(s => s.sector === sector);
+    // 4. Apply post-enrichment filters
+    // Drop OTC stocks that weren't caught by the universe pre-screen (i.e.
+    // unpriced companies that just got a fresh quote with exchange data).
+    stocks = stocks.filter(s => !isOTC(quotes[s.symbol]?.exchange));
     if (maxPE != null) stocks = stocks.filter(s => s.peRatio != null && s.peRatio <= maxPE);
     if (maxPEG != null) stocks = stocks.filter(s => s.pegRatio != null && s.pegRatio <= maxPEG);
 

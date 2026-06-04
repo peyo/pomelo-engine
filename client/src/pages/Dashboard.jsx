@@ -167,8 +167,8 @@ export default function Dashboard() {
       <nav className="border-b border-slate-800 px-6 py-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-bold text-sm">S</div>
-            <span className="font-semibold text-slate-100 text-lg">StockScout</span>
+            <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-bold text-sm">P</div>
+            <span className="font-semibold text-slate-100 text-lg">Pomelo Engine</span>
             <span className="text-xs px-2 py-0.5 rounded bg-slate-800 text-slate-500 border border-slate-700">AI-powered</span>
           </div>
           <div className="flex items-center gap-3">
@@ -250,9 +250,9 @@ export default function Dashboard() {
         {/* Score legend */}
         <div className="grid grid-cols-3 gap-4">
           {[
-            { label: 'Attractive', range: '12–16 pts', color: 'border-green-500/30 bg-green-500/10 text-green-400', desc: 'Strong across most dimensions' },
-            { label: 'Mixed', range: '7–11 pts', color: 'border-yellow-500/30 bg-yellow-500/10 text-yellow-400', desc: 'Strengths offset by real risks' },
-            { label: 'Weak', range: '0–6 pts', color: 'border-red-500/30 bg-red-500/10 text-red-400', desc: 'Multiple red flags' },
+            { label: 'Attractive', range: '12–17 pts', color: 'border-green-500/30 bg-green-500/10 text-green-400', desc: 'Strong across most dimensions' },
+            { label: 'Mixed', range: '8–11 pts', color: 'border-yellow-500/30 bg-yellow-500/10 text-yellow-400', desc: 'Strengths offset by real risks' },
+            { label: 'Weak', range: '0–7 pts', color: 'border-red-500/30 bg-red-500/10 text-red-400', desc: 'Multiple red flags' },
           ].map(({ label, range, color, desc }) => (
             <div key={label} className={`rounded-xl border p-4 ${color}`}>
               <div className="flex justify-between items-baseline">
@@ -262,6 +262,41 @@ export default function Dashboard() {
               <p className="text-xs opacity-60 mt-1">{desc}</p>
             </div>
           ))}
+        </div>
+
+        {/* Blank cell legend */}
+        <div className="flex items-center gap-5 px-1 text-xs text-slate-500">
+          <span className="flex items-center gap-1.5">
+            <span className="text-slate-700 font-medium text-sm">—</span>
+            metric undefined (e.g. negative equity → no ROIC, declining revenue → no PEG)
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="text-slate-600 font-medium text-sm">⋯</span>
+            not yet priced — price job still running
+          </span>
+          <Tooltip content={
+            <div className="space-y-3 normal-case font-normal tracking-normal">
+              <p className="text-slate-300 font-medium">Why some cells are blank</p>
+              <div className="space-y-2.5">
+                {[
+                  { metric: 'ROIC', symbol: '—', reason: 'Company has negative book equity (heavy buybacks — e.g. PM, MCK). ROIC = profit ÷ capital employed, and book equity is the denominator. When it\'s negative, the result is mathematically undefined — not a bad business, just one that\'s returned more capital than it holds on the books.' },
+                  { metric: 'PEG', symbol: '—', reason: 'Revenue is flat or declining. PEG = P/E ÷ growth rate, so it\'s only meaningful when a company is actually growing. A shrinking company with a low P/E looks "cheap on PEG" but that\'s misleading — we leave it blank instead.' },
+                  { metric: 'P/E', symbol: '—', reason: 'Company reported a net loss in its last fiscal year. P/E = price ÷ earnings, and a negative denominator produces a meaningless negative number.' },
+                  { metric: 'FCF, P/E, EV/EBITDA, PEG', symbol: '⋯', reason: 'Company hasn\'t been priced yet by the background price job. All four metrics need a live market cap — once the price job caches this ticker, they\'ll appear on your next screen.' },
+                ].map(({ metric, symbol, reason }) => (
+                  <div key={metric} className="flex gap-2">
+                    <div className="shrink-0 w-5 text-center text-slate-400 font-medium">{symbol}</div>
+                    <div>
+                      <span className="text-slate-200 font-medium">{metric}: </span>
+                      <span className="text-slate-400">{reason}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          }>
+            <span className="ml-2 inline-flex items-center justify-center w-4 h-4 rounded-full bg-slate-800 text-slate-500 text-xs hover:bg-slate-700 hover:text-slate-300 transition-colors cursor-help">?</span>
+          </Tooltip>
         </div>
 
         {/* Filters */}

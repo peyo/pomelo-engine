@@ -44,28 +44,42 @@ export function getCompany(ticker) {
   return loadUniverse()[ticker.toUpperCase()] ?? null;
 }
 
+// NYSE and Nasdaq are the two major US exchanges where stocks are freely
+// purchasable. Everything else (OTC Markets, Pink Sheets, Grey Market) is
+// excluded. Finnhub uses full exchange names so we match on key substrings.
+const LISTED_EXCHANGES = ['NYSE', 'NASDAQ', 'NEW YORK STOCK EXCHANGE', 'NASDAQ NMS', 'NASDAQ CAPITAL', 'NASDAQ GLOBAL'];
+export function isOTC(exchange) {
+  if (!exchange) return false;
+  const upper = exchange.toUpperCase();
+  return !LISTED_EXCHANGES.some(ex => upper.includes(ex));
+}
+
 // Pre-screen the universe on EDGAR metrics, plus an optional market-cap filter
 // (using prices populated by the batch price job). Returns matching company
 // records capped to `limit` (highest ROIC first).
 export function screenUniverse(filters = {}, limit = 40) {
   const u = loadUniverse();
-  const { minROIC, maxDebtToEbitda, minGrowth, minMktCap, maxMktCap } = filters;
-  const useMktCap = minMktCap != null || maxMktCap != null;
-  const quotes = useMktCap ? loadCachedQuotes() : null;
+  const { minROIC, maxDebtToEbitda, minGrowth, minMktCap, maxMktCap, sector } = filters;
+  const needsQuotes = minMktCap != null || maxMktCap != null || sector;
+  const quotes = needsQuotes ? loadCachedQuotes() : null;
 
   let matches = Object.values(u).filter(c => {
     const m = c.metrics;
     if (minROIC != null && (m.roic == null || m.roic < minROIC)) return false;
     if (maxDebtToEbitda != null && (m.debtToEbitda == null || m.debtToEbitda > maxDebtToEbitda)) return false;
     if (minGrowth != null && (m.revenueGrowth == null || m.revenueGrowth < minGrowth)) return false;
-    if (useMktCap) {
-      const mc = quotes[c.ticker]?.mktCap;
-      // A size filter excludes companies whose price isn't cached yet — we
-      // can't verify their size, so they don't qualify.
+    const cachedQuote = quotes?.[c.ticker];
+    if (minMktCap != null || maxMktCap != null) {
+      const mc = cachedQuote?.mktCap;
       if (mc == null) return false;
       if (minMktCap != null && mc < minMktCap) return false;
       if (maxMktCap != null && mc > maxMktCap) return false;
     }
+    // Sector filter: applied at pre-screen so the top-N candidates come from
+    // within the chosen sector, not just the tail end of a cross-sector top-N.
+    if (sector && cachedQuote?.sector !== sector) return false;
+    // OTC exclusion: only applies once a quote is cached.
+    if (cachedQuote?.exchange && isOTC(cachedQuote.exchange)) return false;
     return true;
   });
 

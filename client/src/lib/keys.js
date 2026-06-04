@@ -1,7 +1,7 @@
 // BYOK key store. Keys live only in this browser's localStorage and are sent
 // as request headers to the backend, which uses them per-request and never
 // stores them.
-const STORAGE_KEY = 'stockscout.keys';
+const STORAGE_KEY = 'pomelo.keys';
 
 const FIELDS = [
   { id: 'anthropic', label: 'Anthropic API key', header: 'x-anthropic-key',

@@ -1,4 +1,4 @@
-const SECTORS = ['Technology', 'Industrials', 'Healthcare', 'Financial Services', 'Energy', 'Consumer Cyclical', 'Consumer Defensive', 'Communication Services', 'Basic Materials', 'Real Estate', 'Utilities'];
+const SECTORS = ['Technology', 'Semiconductors', 'Health Care', 'Biotechnology', 'Energy', 'Financial Services', 'Retail', 'Aerospace & Defense', 'Electrical Equipment', 'Machinery', 'Media', 'Communications', 'Utilities', 'Real Estate', 'Chemicals', 'Beverages', 'Pharmaceuticals'];
 
 const NumField = ({ label, k, filters, set, placeholder, step }) => (
   <div className="flex items-center gap-2">

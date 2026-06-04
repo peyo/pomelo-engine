@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { getCompany } from '../services/universe.js';
-import { getQuote } from '../services/pricing.js';
+import { getQuote, getCachedQuote } from '../services/pricing.js';
 import { keysFromReq } from '../services/keys.js';
 import { computeMetrics, getFundamentals } from '../services/edgarFacts.js';
 import { fetchEdgarContext } from '../services/edgar.js';
@@ -17,7 +17,9 @@ router.get('/:ticker', async (req, res) => {
     let company = getCompany(ticker);
     let fundamentals = company?.fundamentals;
 
-    const { quote } = await getQuote(ticker, keys);
+    // Prefer the shared operator-populated cache; only fall back to a live
+    // BYOK call if the ticker isn't cached yet.
+    const quote = getCachedQuote(ticker) ?? (await getQuote(ticker, keys)).quote;
 
     if (!fundamentals && quote?.cik) {
       const f = await getFundamentals(quote.cik);

@@ -10,14 +10,15 @@ export function sanitizeRoic(roic) {
   return roic;
 }
 
-// Quantitative scoring — returns 0/1/2 per metric, max 10 points
+// Quantitative scoring. FCF yield scores out of 3 (most manipulation-resistant
+// signal); all others out of 2. Max quant = 11, total max = 17.
 export function scoreQuantitative(stock) {
   return {
-    fcfYield: scoreFCF(stock.fcfYield),
-    evToEbitda: scoreEV(stock.evToEbitda),
-    peg: scorePEG(stock.pegRatio),
-    pe: scorePE(stock.forwardPE ?? stock.peRatio),
-    roic: scoreROIC(stock.roic),
+    fcfYield: scoreFCF(stock.fcfYield),   // 0-3
+    evToEbitda: scoreEV(stock.evToEbitda), // 0-2
+    peg: scorePEG(stock.pegRatio),         // 0-2
+    pe: scorePE(stock.forwardPE ?? stock.peRatio), // 0-2
+    roic: scoreROIC(stock.roic),           // 0-2
   };
 }
 
@@ -26,13 +27,15 @@ export function totalScore(quantScores, qualScores) {
   const qual = qualScores
     ? qualScores.businessModel.score + qualScores.management.score + qualScores.industryStructure.score
     : 0;
-  return { quant, qual, total: quant + qual, maxQuant: 10, maxQual: 6, max: 16 };
+  return { quant, qual, total: quant + qual, maxQuant: 11, maxQual: 6, max: 17 };
 }
 
+// FCF yield: 0-3 pts (weighted higher — hardest signal to manipulate)
 function scoreFCF(v) {
   if (v == null) return 0;
-  if (v >= 5) return 2;
-  if (v >= 2) return 1;
+  if (v >= 8) return 3;  // exceptional
+  if (v >= 5) return 2;  // strong
+  if (v >= 2) return 1;  // fair
   return 0;
 }
 

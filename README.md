@@ -1,4 +1,4 @@
-# StockScout
+# Pomelo
 
 An AI-powered stock discovery engine. It screens the full universe of US public
 companies on fundamentals computed from **SEC EDGAR** filings, enriches the
@@ -53,7 +53,7 @@ the app before a full ingest finishes.
 
 ### API keys (BYOK)
 
-StockScout is **bring your own key**. There are no server-side API keys — open
+Pomelo is **bring your own key**. There are no server-side API keys — open
 the in-app **⚙ Keys** panel and paste your own:
 
 - **Finnhub** (live pricing, free 60 req/min) — https://finnhub.io/register

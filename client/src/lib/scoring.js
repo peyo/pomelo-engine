@@ -7,12 +7,13 @@ export const METRICS = [
       what: 'Free Cash Flow divided by market cap — how much cash the business generates relative to its price.',
       formula: 'FCF / Market Cap × 100',
       ranges: [
-        { label: '≥ 5%', color: 'green', meaning: 'Cheap — strong cash return' },
+        { label: '≥ 8%', color: 'sky', meaning: 'Exceptional cash return' },
+        { label: '5–8%', color: 'green', meaning: 'Strong' },
         { label: '2–5%', color: 'yellow', meaning: 'Fair' },
-        { label: '< 2%', color: 'red', meaning: 'Expensive or capex-heavy' },
+        { label: '< 2%', color: 'red', meaning: 'Weak or capex-heavy' },
       ],
       source: 'stockanalysis.com → Key Stats',
-      trap: 'Heavy capex companies (like chip fabs) look weak here even when earnings are strong.',
+      trap: 'Heavy capex companies (like chip fabs) look weak here even when earnings are strong. FCF yield is weighted more heavily than other metrics — it\'s the hardest signal to manipulate.',
     },
   },
   {
@@ -111,6 +112,10 @@ export const QUAL_CATEGORIES = [
   },
 ];
 
+export const MAX_SCORE = 17;
+export const MAX_QUANT = 11;
+export const MAX_QUAL = 6;
+
 export function scoreColor(score, max = 2) {
   const pct = score / max;
   if (pct >= 0.75) return 'text-green-400';
@@ -118,14 +123,14 @@ export function scoreColor(score, max = 2) {
   return 'text-red-400';
 }
 
-export function totalColor(score, max = 16) {
+export function totalColor(score, max = MAX_SCORE) {
   const pct = score / max;
   if (pct >= 0.7) return 'text-green-400';
   if (pct >= 0.45) return 'text-yellow-400';
   return 'text-red-400';
 }
 
-export function verdict(score, max = 16) {
+export function verdict(score, max = MAX_SCORE) {
   const pct = score / max;
   if (pct >= 0.7) return { label: 'Attractive', color: 'bg-green-500/20 text-green-400 border-green-500/30' };
   if (pct >= 0.45) return { label: 'Mixed', color: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' };

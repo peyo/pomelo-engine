@@ -1,6 +1,11 @@
 import Tooltip from './Tooltip';
 
-const colorDot = { green: 'bg-green-400', yellow: 'bg-yellow-400', red: 'bg-red-400' };
+const colorDot = {
+  sky: 'bg-sky-400',
+  green: 'bg-green-400',
+  yellow: 'bg-yellow-400',
+  red: 'bg-red-400',
+};
 
 function MetricContent({ t }) {
   return (
