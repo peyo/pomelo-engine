@@ -112,10 +112,15 @@ export default function StockDetail({ stock, onClose }) {
                   }
                 }
                 const sc = qs?.[m.key] ?? 0;
-                // Sub-label shows which actual metric is being used
+                // Human-readable sub-label for the actual metric used
+                const KEY_LABELS = {
+                  fcfYield: 'FCF Yield', evToEbitda: 'EV/EBITDA',
+                  pegRatio: 'PEG Ratio', peRatio: 'P/E Ratio',
+                  roic: 'ROIC', roe: 'ROE', pb: 'Price/Book',
+                };
                 const subLabel = fin
-                  ? (m.financialKey ? m.financialKey.toUpperCase() : 'N/A')
-                  : m.nonFinancialKey?.toUpperCase();
+                  ? (m.financialKey ? (KEY_LABELS[m.financialKey] ?? m.financialKey) : 'N/A')
+                  : (KEY_LABELS[m.nonFinancialKey] ?? m.nonFinancialKey);
                 return (
                   <div key={m.key} className="flex items-center gap-3">
                     <span className="text-sm text-slate-300 w-32 shrink-0 flex items-center">
