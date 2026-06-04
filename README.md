@@ -54,7 +54,7 @@ npm run dev             # client on :5173, API on :3001
 
 Pomelo uses a **hybrid key model**:
 
-- **Pricing** (Finnhub) — operator-provided. Add `FINNHUB_API_KEY` to `.env` and run `npm run price` to pre-populate the shared price cache. Users don't need their own pricing key.
+- **Pricing** (Finnhub) — operator-provided. Add `FINNHUB_API_KEY` to `.env`. The server automatically refreshes prices daily in the background — no manual steps needed. Users don't need their own pricing key.
 - **Claude deep-dives** (Anthropic) — user-provided via the in-app **⚙ Keys** panel. Each user brings their own Anthropic key; it's stored in their browser's `localStorage` and sent per-request. The server never logs or stores it.
 
 ```
