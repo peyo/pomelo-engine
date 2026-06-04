@@ -1,6 +1,9 @@
 # Pomelo Engine
 
-An AI-powered stock discovery engine for value investors. Screens the full universe of US public companies on fundamentals from **SEC EDGAR**, enriches survivors with **live pricing**, scores them quantitatively across 5 metrics, then uses **Claude** to score business quality using Buffett-style criteria from each company's 10-K risk factors.
+An AI-powered stock discovery engine for value investors.
+
+![Dashboard](screenshots/dashboard.png)
+![Deep Dive](screenshots/deep-dive.png) Screens the full universe of US public companies on fundamentals from **SEC EDGAR**, enriches survivors with **live pricing**, scores them quantitatively across 5 metrics, then uses **Claude** to score business quality using Buffett-style criteria from each company's 10-K risk factors.
 
 ## How it works
 
