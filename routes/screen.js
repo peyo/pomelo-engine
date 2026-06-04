@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { screenUniverse, universeStats } from '../services/universe.js';
-import { getQuotes, hasLivePricing } from '../services/fmp.js';
+import { getQuotes, hasLivePricing } from '../services/pricing.js';
+import { keysFromReq } from '../services/keys.js';
 import { computeMetrics } from '../services/edgarFacts.js';
 import { scoreQuantitative, totalScore, sanitizeRoic } from '../services/scorer.js';
 
@@ -8,6 +9,7 @@ const router = Router();
 
 router.get('/', async (req, res) => {
   try {
+    const keys = keysFromReq(req);
     const num = k => (req.query[k] != null && req.query[k] !== '' ? Number(req.query[k]) : undefined);
 
     // EDGAR-metric filters (applied against the cached universe, no price needed)
@@ -30,10 +32,11 @@ router.get('/', async (req, res) => {
     // 1. Pre-screen the universe on EDGAR metrics
     const candidates = screenUniverse(edgarFilters, limit);
 
-    // 2. Enrich survivors with live price/market cap
-    const quotes = hasLivePricing()
-      ? await getQuotes(candidates.map(c => c.ticker))
-      : {};
+    // 2. Enrich survivors with live price/market cap (cached + quota-aware)
+    const enrichment = hasLivePricing(keys)
+      ? await getQuotes(candidates.map(c => c.ticker), keys)
+      : { quotes: {}, rateLimited: false, stale: false };
+    const quotes = enrichment.quotes;
 
     // 3. Compute full metric set + score
     let stocks = candidates.map(c => {
@@ -56,7 +59,7 @@ router.get('/', async (req, res) => {
         pegRatio: metrics.pegRatio ?? null,
         roic: sanitizeRoic(c.metrics.roic),
         fcfYield: metrics.fcfYield ?? null,
-        revenueGrowth: c.metrics.earningsGrowth ?? null,
+        revenueGrowth: c.metrics.revenueGrowth ?? null,
         debtToEbitda: c.metrics.debtToEbitda ?? null,
         hasLiveData: Boolean(quote),
       };
@@ -78,7 +81,9 @@ router.get('/', async (req, res) => {
       stocks,
       universeReady: true,
       count: stats.count,
-      livePricing: hasLivePricing(),
+      livePricing: hasLivePricing(keys),
+      rateLimited: enrichment.rateLimited,
+      stale: enrichment.stale,
     });
   } catch (err) {
     res.status(500).json({ error: err.message });

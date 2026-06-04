@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { getCompany } from '../services/universe.js';
-import { getQuote } from '../services/fmp.js';
+import { getQuote } from '../services/pricing.js';
+import { keysFromReq } from '../services/keys.js';
 import { computeMetrics, getFundamentals } from '../services/edgarFacts.js';
 import { fetchEdgarContext } from '../services/edgar.js';
 import { scoreQualitative } from '../services/claude.js';
@@ -11,11 +12,12 @@ const router = Router();
 router.get('/:ticker', async (req, res) => {
   const ticker = req.params.ticker.toUpperCase();
   try {
+    const keys = keysFromReq(req);
     // Prefer cached universe; fall back to a live EDGAR fetch for off-list tickers
     let company = getCompany(ticker);
     let fundamentals = company?.fundamentals;
 
-    const quote = await getQuote(ticker);
+    const { quote } = await getQuote(ticker, keys);
 
     if (!fundamentals && quote?.cik) {
       const f = await getFundamentals(quote.cik);
@@ -39,7 +41,7 @@ router.get('/:ticker', async (req, res) => {
       pegRatio: metrics.pegRatio ?? null,
       roic: sanitizeRoic(company?.metrics?.roic ?? metrics.roic),
       fcfYield: metrics.fcfYield ?? null,
-      revenueGrowth: company?.metrics?.earningsGrowth ?? metrics.revenueGrowth ?? null,
+      revenueGrowth: company?.metrics?.revenueGrowth ?? metrics.revenueGrowth ?? null,
       debtToEbitda: company?.metrics?.debtToEbitda ?? null,
     };
 
@@ -50,10 +52,10 @@ router.get('/:ticker', async (req, res) => {
     let qualScores = null;
     let qualError = null;
     try {
-      qualScores = await scoreQualitative(ticker, stock.companyName, edgar.riskText);
+      qualScores = await scoreQualitative(ticker, stock.companyName, edgar.riskText, keys.anthropic);
     } catch (e) {
       qualError = e.code === 'NO_CLAUDE_KEY'
-        ? 'Add ANTHROPIC_API_KEY to enable Claude qualitative analysis.'
+        ? 'Add your Anthropic key in Settings (⚙ Keys) to enable Claude qualitative analysis.'
         : `Qualitative scoring failed: ${e.message}`;
     }
 

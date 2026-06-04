@@ -43,6 +43,19 @@ export default function FilterBar({ filters, onChange }) {
           </select>
         </div>
 
+        <div className="flex items-center gap-2">
+          <label className="text-xs text-slate-500">Candidates</label>
+          <select
+            value={filters.limit ?? '40'}
+            onChange={e => set('limit', e.target.value)}
+            className="text-sm bg-slate-800 border border-slate-700 text-slate-300 rounded-lg px-3 py-1.5 focus:outline-none focus:border-indigo-500"
+          >
+            <option value="40">40</option>
+            <option value="80">80</option>
+            <option value="160">160</option>
+          </select>
+        </div>
+
         {Object.keys(filters).some(k => filters[k] != null) && (
           <button
             onClick={() => onChange({})}

@@ -1,22 +1,17 @@
 import Anthropic from '@anthropic-ai/sdk';
 
-const RAW_KEY = process.env.ANTHROPIC_API_KEY ?? '';
-const KEY = RAW_KEY && !RAW_KEY.startsWith('your_') ? RAW_KEY : null;
-
-export const hasClaude = () => Boolean(KEY);
-
-const client = KEY ? new Anthropic({ apiKey: KEY }) : null;
-
+// Pure BYOK: the Anthropic key is provided per-request by the caller.
 const SYSTEM = `You are a financial analyst specializing in equity research.
 You score companies on qualitative factors based on SEC filings and public information.
 Always respond with valid JSON only — no markdown, no explanation outside the JSON.`;
 
-export async function scoreQualitative(ticker, companyName, riskText) {
-  if (!client) {
-    const e = new Error('Claude qualitative scoring unavailable — set ANTHROPIC_API_KEY');
+export async function scoreQualitative(ticker, companyName, riskText, apiKey) {
+  if (!apiKey) {
+    const e = new Error('Claude qualitative scoring unavailable — add your Anthropic key');
     e.code = 'NO_CLAUDE_KEY';
     throw e;
   }
+  const client = new Anthropic({ apiKey });
   const context = riskText
     ? `SEC 10-K Risk Factors excerpt:\n${riskText}`
     : `Company: ${companyName} (${ticker}). Use your training knowledge to assess this company.`;

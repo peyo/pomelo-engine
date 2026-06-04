@@ -98,10 +98,12 @@ export async function getFundamentals(cik) {
 
   const fy = netIncome?.fy;
   const priorNetIncome = fy ? priorAnnual(netIncomeU, fy) : null;
+  const priorRevenue = revenue?.fy ? priorAnnual(revenueU, revenue.fy) : null;
 
   return {
     fiscalYear: fy,
     revenue: revenue?.val ?? null,
+    priorRevenue,
     netIncome: netIncome?.val ?? null,
     priorNetIncome,
     operatingIncome: opIncome?.val ?? null,
@@ -153,9 +155,10 @@ export function computeMetrics(f, { price, marketCap }) {
     if (invested > 0) out.roic = round((nopat / invested) * 100, 1);
   }
 
-  // Revenue/earnings growth (YoY) for PEG
-  if (f.netIncome && f.priorNetIncome && f.priorNetIncome > 0) {
-    const growth = (f.netIncome - f.priorNetIncome) / f.priorNetIncome;
+  // Revenue growth (YoY) — more stable than earnings growth and harder to
+  // distort by one-offs, so it also drives PEG (avoids base-effect spikes).
+  if (f.revenue && f.priorRevenue && f.priorRevenue > 0) {
+    const growth = (f.revenue - f.priorRevenue) / f.priorRevenue;
     out.revenueGrowth = round(growth, 2);
     if (out.peRatio && growth > 0) {
       out.pegRatio = round(out.peRatio / (growth * 100), 2);

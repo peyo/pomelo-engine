@@ -12,12 +12,24 @@ function ScoreDot({ score }) {
   return <span className={`inline-block w-2 h-2 rounded-full ${colors[score]}`} />;
 }
 
-export default function StockTable({ stocks, onSelect }) {
+// Maps a sortable column key to the stock object's actual field. Metric keys
+// (peg, pe) differ from the data fields (pegRatio, peRatio).
+function sortValue(stock, key) {
+  if (key === 'total') return stock.scores?.total;
+  if (key === 'peg') return stock.pegRatio;
+  if (key === 'pe') return stock.forwardPE ?? stock.peRatio;
+  return stock[key];
+}
+
+// Metrics that depend on live pricing — these shimmer while a screen is loading.
+const PRICE_KEYS = new Set(['fcfYield', 'evToEbitda', 'peg', 'pe']);
+
+export default function StockTable({ stocks, onSelect, loading = false }) {
   const [sort, setSort] = useState({ key: 'total', dir: -1 });
 
   const sorted = [...stocks].sort((a, b) => {
-    const av = sort.key === 'total' ? a.scores?.total : a[sort.key];
-    const bv = sort.key === 'total' ? b.scores?.total : b[sort.key];
+    const av = sortValue(a, sort.key);
+    const bv = sortValue(b, sort.key);
     if (av == null) return 1;
     if (bv == null) return -1;
     return (av - bv) * sort.dir;
@@ -27,30 +39,33 @@ export default function StockTable({ stocks, onSelect }) {
     setSort(s => s.key === key ? { key, dir: -s.dir } : { key, dir: -1 });
   };
 
-  const Th = ({ label, sortKey, tooltip }) => (
+  const Th = ({ label, sortKey, tooltip, width }) => (
     <th
+      style={width ? { width } : undefined}
       className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider cursor-pointer hover:text-slate-300 transition-colors select-none whitespace-nowrap"
       onClick={() => sortKey && toggleSort(sortKey)}
     >
       {label}
       {tooltip && <MetricTooltip tooltip={tooltip} />}
-      {sortKey && sort.key === sortKey && (
-        <span className="ml-1 text-indigo-400">{sort.dir === -1 ? '↓' : '↑'}</span>
-      )}
+      {/* Arrow slot is always present (fixed width) so toggling sort never
+          changes column widths. */}
+      <span className="inline-block w-3 ml-1 text-indigo-400">
+        {sortKey && sort.key === sortKey ? (sort.dir === -1 ? '↓' : '↑') : ''}
+      </span>
     </th>
   );
 
   return (
     <div className="overflow-x-auto">
-      <table className="w-full border-collapse">
+      <table className="w-full border-collapse table-fixed min-w-[860px]">
         <thead>
           <tr className="border-b border-slate-800">
-            <Th label="Company" />
-            <Th label="Score" sortKey="total" />
+            <Th label="Company" width="18%" />
+            <Th label="Score" sortKey="total" width="12%" />
             {METRICS.map(m => (
-              <Th key={m.key} label={m.label} sortKey={m.key} tooltip={m.tooltip} />
+              <Th key={m.key} label={m.label} sortKey={m.key} tooltip={m.tooltip} width="11%" />
             ))}
-            <Th label="Action" />
+            <Th label="Action" width="11%" />
           </tr>
         </thead>
         <tbody>
@@ -88,6 +103,14 @@ export default function StockTable({ stocks, onSelect }) {
                     : m.key === 'peg' ? stock.pegRatio
                     : stock[m.key === 'fcfYield' ? 'fcfYield' : m.key === 'evToEbitda' ? 'evToEbitda' : m.key === 'roic' ? 'roic' : m.key];
                   const s = stock.quantScores?.[m.key];
+                  // Shimmer price-dependent cells while a screen request is in flight.
+                  if (loading && PRICE_KEYS.has(m.key)) {
+                    return (
+                      <td key={m.key} className="px-4 py-4">
+                        <div className="h-3.5 w-12 rounded bg-slate-700/60 animate-pulse" />
+                      </td>
+                    );
+                  }
                   return (
                     <td key={m.key} className="px-4 py-4">
                       <div className="flex items-center gap-1.5">
@@ -100,7 +123,7 @@ export default function StockTable({ stocks, onSelect }) {
                 <td className="px-4 py-4">
                   <button
                     onClick={() => onSelect(stock)}
-                    className="text-xs px-3 py-1.5 rounded-lg bg-indigo-600/20 text-indigo-400 border border-indigo-600/30 hover:bg-indigo-600/30 transition-colors"
+                    className="text-xs px-3 py-1.5 rounded-lg bg-indigo-600/20 text-indigo-400 border border-indigo-600/30 hover:bg-indigo-600/30 transition-colors whitespace-nowrap"
                   >
                     Deep dive →
                   </button>

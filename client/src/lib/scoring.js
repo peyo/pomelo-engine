@@ -36,15 +36,15 @@ export const METRICS = [
     label: 'PEG Ratio',
     unit: 'x',
     tooltip: {
-      what: 'P/E divided by earnings growth rate. Adjusts valuation for growth — the key metric for separating cheap growth from value traps.',
-      formula: 'P/E ÷ Annual EPS Growth Rate',
+      what: 'P/E divided by the revenue growth rate. Adjusts valuation for growth — the key metric for separating cheap growth from value traps.',
+      formula: 'P/E ÷ YoY Revenue Growth %',
       ranges: [
         { label: '< 1x', color: 'green', meaning: 'Undervalued relative to growth' },
         { label: '1–2x', color: 'yellow', meaning: 'Fair' },
         { label: '> 2x', color: 'red', meaning: 'Expensive for its growth rate' },
       ],
-      source: 'Yahoo Finance → Statistics',
-      trap: 'Relies on analyst estimates — if growth is cut, the PEG jumps fast.',
+      source: 'Computed: trailing P/E ÷ YoY revenue growth (SEC EDGAR)',
+      trap: 'We use revenue growth (not earnings) so one-off profit swings don\'t create a misleadingly cheap PEG.',
     },
   },
   {

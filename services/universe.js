@@ -24,6 +24,20 @@ export function universeStats() {
   return { count: Object.keys(u).length, exists: fs.existsSync(UNIVERSE_PATH) };
 }
 
+const STATUS_PATH = path.join(__dirname, '..', 'data', 'ingest-status.json');
+
+// Read the ingest heartbeat. "running" is only trusted if the heartbeat is
+// recent — a crashed ingest leaves a stale running:true that we ignore.
+export function ingestStatus() {
+  try {
+    const s = JSON.parse(fs.readFileSync(STATUS_PATH, 'utf8'));
+    const fresh = Date.now() - (s.updatedAt ?? 0) < 20_000;
+    return { ...s, running: Boolean(s.running && fresh) };
+  } catch {
+    return { running: false };
+  }
+}
+
 export function getCompany(ticker) {
   return loadUniverse()[ticker.toUpperCase()] ?? null;
 }
@@ -38,7 +52,7 @@ export function screenUniverse(filters = {}, limit = 40) {
     const m = c.metrics;
     if (minROIC != null && (m.roic == null || m.roic < minROIC)) return false;
     if (maxDebtToEbitda != null && (m.debtToEbitda == null || m.debtToEbitda > maxDebtToEbitda)) return false;
-    if (minGrowth != null && (m.earningsGrowth == null || m.earningsGrowth < minGrowth)) return false;
+    if (minGrowth != null && (m.revenueGrowth == null || m.revenueGrowth < minGrowth)) return false;
     return true;
   });
 

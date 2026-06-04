@@ -6,6 +6,15 @@ import MetricTooltip from './MetricTooltip';
 
 const scoreBarColor = score => ['bg-red-500', 'bg-yellow-500', 'bg-green-500'][score] ?? 'bg-slate-600';
 
+// Scale market cap to T / B / M so small-caps don't round to "$0B".
+function fmtMktCap(v) {
+  if (!v) return '—';
+  if (v >= 1e12) return `$${(v / 1e12).toFixed(1)}T`;
+  if (v >= 1e9) return `$${(v / 1e9).toFixed(1)}B`;
+  if (v >= 1e6) return `$${(v / 1e6).toFixed(0)}M`;
+  return `$${(v / 1e3).toFixed(0)}K`;
+}
+
 export default function StockDetail({ stock, onClose }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -50,8 +59,8 @@ export default function StockDetail({ stock, onClose }) {
           <div className="grid grid-cols-3 gap-4">
             {[
               { label: 'Price', value: s.price ? `$${s.price.toFixed(2)}` : '—' },
-              { label: 'Market Cap', value: s.mktCap ? `$${(s.mktCap / 1e9).toFixed(0)}B` : '—' },
-              { label: 'Rev Growth YoY', value: s.revenueGrowth != null ? `+${(s.revenueGrowth * 100).toFixed(0)}%` : '—' },
+              { label: 'Market Cap', value: fmtMktCap(s.mktCap) },
+              { label: 'Rev Growth YoY', value: s.revenueGrowth != null ? `${s.revenueGrowth >= 0 ? '+' : ''}${(s.revenueGrowth * 100).toFixed(0)}%` : '—' },
             ].map(({ label, value }) => (
               <div key={label} className="rounded-xl bg-slate-800/50 p-4 text-center">
                 <p className="text-lg font-bold text-slate-100">{value}</p>

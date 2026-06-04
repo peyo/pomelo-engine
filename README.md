@@ -40,21 +40,30 @@ IFRS, e.g. TSM, ASML) are excluded — US domestic 10-K filers only.
 npm install
 cd client && npm install && cd ..
 
-# 2. Configure API keys
-cp .env.example .env
-#   ANTHROPIC_API_KEY=sk-ant-...   (required for Claude qualitative scoring)
-#   FMP_API_KEY=...                (required for live pricing; free tier is fine)
-
-# 3. Build the company universe from SEC EDGAR (~25 min, one-time)
+# 2. Build the company universe from SEC EDGAR (~25 min, one-time)
 npm run ingest          # writes data/universe.json (~1,400 companies)
 #   npm run ingest:resume   to continue an interrupted run
 
-# 4. Run frontend + backend together
+# 3. Run frontend + backend together
 npm run dev             # client on :5173, API on :3001
 ```
 
 The dashboard works with whatever is in `data/universe.json`, so you can start
 the app before a full ingest finishes.
+
+### API keys (BYOK)
+
+StockScout is **bring your own key**. There are no server-side API keys — open
+the in-app **⚙ Keys** panel and paste your own:
+
+- **Finnhub** (live pricing, free 60 req/min) — https://finnhub.io/register
+- **Anthropic** (Claude deep-dives) — https://console.anthropic.com
+- **FMP** (optional pricing fallback) — financialmodelingprep.com
+
+Keys are stored only in your browser's `localStorage` and sent as request
+headers (`x-finnhub-key`, `x-anthropic-key`, `x-fmp-key`). The server uses them
+per-request to call the providers on your behalf and never logs or stores them.
+EDGAR fundamentals (ROIC, growth, debt) work with no keys at all.
 
 ## Scoring
 
@@ -78,7 +87,7 @@ denominator artifacts from companies with negative book equity.
 vercel
 ```
 
-Set `ANTHROPIC_API_KEY` and `FMP_API_KEY` in the Vercel project settings.
+No server env vars are needed (BYOK — visitors supply their own keys in the app).
 `data/universe.json` is committed and ships with the deployment (the ingest job
 is too long-running for a serverless function — refresh it locally and redeploy,
 or run it on a schedule).
@@ -91,11 +100,12 @@ routes/
   screen.js            GET /api/screen      — universe screen + live enrich + score
   qualify.js           GET /api/qualify/:t  — full deep-dive incl. Claude
 services/
-  env.js               dotenv loader (override-safe)
+  env.js               dotenv loader (override-safe; only PORT used)
+  keys.js              per-request BYOK key extraction from headers
   universe.js          loads/screens data/universe.json
   edgarFacts.js        companyfacts → fundamentals → computed metrics
   edgar.js             latest 10-K lookup + risk-factor extraction
-  fmp.js               live price/market cap (FMP /profile)
+  pricing.js           live price/market cap (Finnhub or FMP, cached)
   claude.js            qualitative scoring via Claude
   scorer.js            0/1/2 metric scoring + totals
 scripts/
