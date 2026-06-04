@@ -247,22 +247,6 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* Score legend */}
-        <div className="grid grid-cols-3 gap-4">
-          {[
-            { label: 'Attractive', range: '≥ 70%', color: 'border-green-500/30 bg-green-500/10 text-green-400', desc: 'Strong across most dimensions' },
-            { label: 'Mixed', range: '45–69%', color: 'border-yellow-500/30 bg-yellow-500/10 text-yellow-400', desc: 'Strengths offset by real risks' },
-            { label: 'Weak', range: '< 45%', color: 'border-red-500/30 bg-red-500/10 text-red-400', desc: 'Multiple red flags' },
-          ].map(({ label, range, color, desc }) => (
-            <div key={label} className={`rounded-xl border p-4 ${color}`}>
-              <div className="flex justify-between items-baseline">
-                <p className="font-semibold">{label}</p>
-                <p className="text-xs opacity-70">{range}</p>
-              </div>
-              <p className="text-xs opacity-60 mt-1">{desc}</p>
-            </div>
-          ))}
-        </div>
 
         {/* Blank cell legend */}
         <div className="flex items-center gap-1.5 px-1 text-xs text-slate-500">
@@ -308,7 +292,7 @@ export default function Dashboard() {
               {`${stocks.length} companies`}
               <FunnelTooltip count={meta.count} shown={stocks.length} limit={Number(filters.limit ?? 40)} />
             </h2>
-            <p className="text-xs text-slate-600">Click "Deep dive" to run Claude qualitative analysis</p>
+            <p className="text-xs text-slate-600">Run "Deep dive" for full score</p>
           </div>
 
           {error && (
