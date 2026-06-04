@@ -24,6 +24,21 @@ export default function FilterBar({ filters, onChange }) {
         <NumField label="Min ROIC %" k="minROIC" filters={filters} set={set} placeholder="15" />
         <NumField label="Min growth" k="minGrowth" filters={filters} set={set} placeholder="0.1" step="0.05" />
         <NumField label="Max debt/EBITDA" k="maxDebtToEbitda" filters={filters} set={set} placeholder="3" step="0.5" />
+
+        <div className="flex items-center gap-2">
+          <label className="text-xs text-slate-500">Min size</label>
+          <select
+            value={filters.minMktCap ?? ''}
+            onChange={e => set('minMktCap', e.target.value)}
+            className="text-sm bg-slate-800 border border-slate-700 text-slate-300 rounded-lg px-3 py-1.5 focus:outline-none focus:border-indigo-500"
+          >
+            <option value="">Any</option>
+            <option value="300000000">$300M+</option>
+            <option value="2000000000">$2B+</option>
+            <option value="10000000000">$10B+</option>
+            <option value="50000000000">$50B+</option>
+          </select>
+        </div>
       </div>
 
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2">

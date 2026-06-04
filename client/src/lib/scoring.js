@@ -69,14 +69,14 @@ export const METRICS = [
     unit: '%',
     tooltip: {
       what: 'Return on Invested Capital — how efficiently the company turns capital into profit. The best signal of a real moat.',
-      formula: 'Net Operating Profit / Invested Capital',
+      formula: 'NOPAT / Capital Employed (Debt + Equity)',
       ranges: [
         { label: '≥ 15%', color: 'green', meaning: 'Strong moat — earns well above cost of capital' },
         { label: '5–15%', color: 'yellow', meaning: 'Adequate' },
         { label: '< 5%', color: 'red', meaning: 'Destroys value — earns less than cost of capital' },
       ],
-      source: 'stockanalysis.com → Financials → Key Metrics',
-      trap: 'Can be inflated by write-downs that reduce the capital base. Check trend over 5 years.',
+      source: 'Computed: NOPAT ÷ (total debt + book equity), from SEC EDGAR',
+      trap: 'Shown blank for companies with negative book equity (e.g. heavy buybacks) — book ROIC is undefined there, not zero.',
     },
   },
 ];

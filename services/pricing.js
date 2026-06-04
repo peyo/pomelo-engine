@@ -38,6 +38,18 @@ function saveCacheDebounced() {
   }, 250);
 }
 
+// Cache-only reads (no network) — used to apply market-cap pre-screens against
+// prices populated by the batch price job.
+export function getCachedQuote(ticker) {
+  return loadCache()[ticker.toUpperCase()]?.quote ?? null;
+}
+export function loadCachedQuotes() {
+  const store = loadCache();
+  const out = {};
+  for (const [t, entry] of Object.entries(store)) out[t] = entry.quote;
+  return out;
+}
+
 // ---- sliding-window rate limiter (Finnhub allows 60 calls / rolling 60s) --
 // Calls fire immediately until the window fills, so a typical 40-ticker screen
 // completes in ~1-2s instead of being spaced out. Only once ~58 calls have

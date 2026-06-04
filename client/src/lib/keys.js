@@ -4,14 +4,14 @@
 const STORAGE_KEY = 'stockscout.keys';
 
 const FIELDS = [
-  { id: 'finnhub', label: 'Finnhub API key', header: 'x-finnhub-key',
-    help: 'Live pricing (recommended). Free at finnhub.io — 60 calls/min, no daily cap.',
-    url: 'https://finnhub.io/register' },
   { id: 'anthropic', label: 'Anthropic API key', header: 'x-anthropic-key',
-    help: 'Powers Claude qualitative deep-dives. Get one at console.anthropic.com.',
+    help: 'The one key you need — powers Claude qualitative deep-dives. Get one at console.anthropic.com.',
     url: 'https://console.anthropic.com/settings/keys' },
+  { id: 'finnhub', label: 'Finnhub API key (optional)', header: 'x-finnhub-key',
+    help: 'Pricing is already included. Add your own Finnhub key only if you want fresh prices for tickers not yet cached.',
+    url: 'https://finnhub.io/register' },
   { id: 'fmp', label: 'FMP API key (optional)', header: 'x-fmp-key',
-    help: 'Fallback pricing if you don\'t use Finnhub. Free tier is ~250 calls/day.',
+    help: 'Alternative pricing source. Free tier is ~250 calls/day.',
     url: 'https://site.financialmodelingprep.com/developer/docs' },
 ];
 

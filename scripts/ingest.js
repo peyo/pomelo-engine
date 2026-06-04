@@ -42,9 +42,12 @@ function edgarOnlyMetrics(f) {
   if (f.operatingIncome != null && f.dna != null) {
     m.ebitda = f.operatingIncome + f.dna;
   }
-  if (f.operatingIncome != null) {
+  // ROIC ≈ NOPAT / capital employed (debt + equity). Cash is NOT subtracted
+  // (collapses the denominator for cash-rich firms); negative book equity makes
+  // book ROIC undefined → left null.
+  if (f.operatingIncome != null && f.equity > 0) {
     const nopat = f.operatingIncome * 0.79;
-    const invested = f.totalDebt + f.equity - f.cash;
+    const invested = f.totalDebt + f.equity;
     if (invested > 0) m.roic = round((nopat / invested) * 100, 1);
   }
   if (f.revenue && f.priorRevenue && f.priorRevenue > 0) {

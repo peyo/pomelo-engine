@@ -112,6 +112,7 @@ export default function Dashboard() {
   const [anthropicKey, setAnthropicKey] = useState(hasAnthropicKey());
 
   const [ingest, setIngest] = useState({ running: false });
+  const [price, setPrice] = useState({ running: false });
   const wasRunning = useRef(false);
 
   const refreshKeyState = () => {
@@ -145,11 +146,13 @@ export default function Dashboard() {
     let timer;
     const poll = async () => {
       try {
-        const { ingest: ing } = await getStatus();
+        const { ingest: ing, price: pr } = await getStatus();
         setIngest(ing);
-        if (wasRunning.current && !ing.running) load(); // build just finished
-        wasRunning.current = ing.running;
-        timer = setTimeout(poll, ing.running ? 3000 : 20000);
+        setPrice(pr ?? { running: false });
+        const anyRunning = ing.running || pr?.running;
+        if (wasRunning.current && !anyRunning) load(); // a job just finished
+        wasRunning.current = anyRunning;
+        timer = setTimeout(poll, anyRunning ? 3000 : 20000);
       } catch {
         timer = setTimeout(poll, 20000);
       }
@@ -195,8 +198,8 @@ export default function Dashboard() {
               className="relative flex items-center gap-1.5 text-xs text-slate-300 bg-slate-800 hover:bg-slate-700 border border-slate-700 px-3 py-1.5 rounded-lg transition-colors"
             >
               <span>⚙</span> Keys
-              {!pricingKey && (
-                <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-amber-400 border border-slate-900" title="No pricing key set" />
+              {!anthropicKey && (
+                <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-amber-400 border border-slate-900" title="Add your Anthropic key for AI deep-dives" />
               )}
             </button>
           </div>
@@ -210,24 +213,36 @@ export default function Dashboard() {
           <p className="text-slate-500 mt-1">Screens the full SEC universe on fundamentals from EDGAR filings + live pricing, then lets Claude score business quality from 10-K risk factors.</p>
         </div>
 
-        {/* Universe build progress */}
-        <IngestBanner ingest={ingest} />
+        {/* Build-job progress */}
+        <IngestBanner
+          status={ingest}
+          title="Building company universe from SEC EDGAR…"
+          unit="filers"
+          note="Fundamentals appear as companies finish processing. Price-based columns fill in once the build completes and you re-screen."
+        />
+        <IngestBanner
+          status={price}
+          title="Fetching market caps for the universe…"
+          unit="companies"
+          note="Once complete, the Min size filter screens the whole market and price metrics cover every pre-screened company."
+        />
 
-        {/* First-run key prompt */}
-        {!pricingKey && (
+        {/* First-run key prompt — fundamentals & pricing are included; the
+            only key a user needs is their own Anthropic key for AI deep-dives. */}
+        {!anthropicKey && (
           <div className="rounded-xl border border-indigo-500/30 bg-indigo-500/10 p-4 flex items-center justify-between gap-4">
             <div>
-              <p className="text-sm font-medium text-indigo-200">Add your API keys to see live valuations</p>
+              <p className="text-sm font-medium text-indigo-200">Add your Anthropic key for AI deep-dives</p>
               <p className="text-xs text-indigo-300/70 mt-0.5">
-                EDGAR fundamentals (ROIC, growth) work without keys. Add a free Finnhub key for live pricing,
-                and an Anthropic key for Claude deep-dives. Your keys stay in your browser.
+                Fundamentals and pricing are included — screening works out of the box. To run Claude's
+                qualitative analysis on a company, add your own Anthropic key. It stays in your browser.
               </p>
             </div>
             <button
               onClick={() => setShowSettings(true)}
               className="shrink-0 text-sm px-4 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-500 transition-colors font-medium"
             >
-              Add keys
+              Add key
             </button>
           </div>
         )}

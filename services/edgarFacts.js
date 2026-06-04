@@ -148,10 +148,13 @@ export function computeMetrics(f, { price, marketCap }) {
     out.fcfYield = round((out.fcf / marketCap) * 100, 1);
   }
 
-  // ROIC = NOPAT / invested capital. NOPAT ≈ operating income × (1 - 21% tax)
-  if (f.operatingIncome != null) {
+  // ROIC ≈ NOPAT / capital employed (debt + equity). NOPAT ≈ operating income
+  // × (1 − 21% tax). We do NOT subtract cash: for cash-rich firms that collapses
+  // the denominator and inflates ROIC into the hundreds of percent. Negative
+  // book equity (heavy buybacks) makes book ROIC undefined → leave it null.
+  if (f.operatingIncome != null && f.equity > 0) {
     const nopat = f.operatingIncome * 0.79;
-    const invested = f.totalDebt + f.equity - f.cash;
+    const invested = f.totalDebt + f.equity;
     if (invested > 0) out.roic = round((nopat / invested) * 100, 1);
   }
 

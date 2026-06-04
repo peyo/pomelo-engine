@@ -4,5 +4,7 @@ client/dist/
 .env
 .DS_Store
 data/ingest.log
+data/price.log
 data/quotes.json
 data/ingest-status.json
+data/price-status.json

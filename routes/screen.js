@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { screenUniverse, universeStats } from '../services/universe.js';
-import { getQuotes, hasLivePricing } from '../services/pricing.js';
+import { getQuotes, hasLivePricing, loadCachedQuotes } from '../services/pricing.js';
 import { keysFromReq } from '../services/keys.js';
 import { computeMetrics } from '../services/edgarFacts.js';
 import { scoreQuantitative, totalScore, sanitizeRoic } from '../services/scorer.js';
@@ -12,13 +12,17 @@ router.get('/', async (req, res) => {
     const keys = keysFromReq(req);
     const num = k => (req.query[k] != null && req.query[k] !== '' ? Number(req.query[k]) : undefined);
 
-    // EDGAR-metric filters (applied against the cached universe, no price needed)
+    // EDGAR-metric + market-cap filters (applied against the cached universe).
+    // minMktCap uses prices populated by the batch price job, so it acts as a
+    // true pre-screen before the top-N candidate cap.
     const edgarFilters = {
       minROIC: num('minROIC'),
       maxDebtToEbitda: num('maxDebtToEbitda'),
       minGrowth: num('minGrowth'),
+      minMktCap: num('minMktCap'),
+      maxMktCap: num('maxMktCap'),
     };
-    // Price-based filters (applied after live enrichment)
+    // Price-based filters (applied after enrichment)
     const maxPE = num('maxPE');
     const maxPEG = num('maxPEG');
     const sector = req.query.sector || undefined;
@@ -29,14 +33,24 @@ router.get('/', async (req, res) => {
       return res.json({ stocks: [], universeReady: false, count: 0 });
     }
 
-    // 1. Pre-screen the universe on EDGAR metrics
+    // 1. Pre-screen the universe on EDGAR metrics (+ size)
     const candidates = screenUniverse(edgarFilters, limit);
 
-    // 2. Enrich survivors with live price/market cap (cached + quota-aware)
-    const enrichment = hasLivePricing(keys)
-      ? await getQuotes(candidates.map(c => c.ticker), keys)
-      : { quotes: {}, rateLimited: false, stale: false };
-    const quotes = enrichment.quotes;
+    // 2. Enrich with prices. Prefer the shared cache (populated by the price
+    //    job); only spend a live BYOK call on tickers the cache is missing.
+    const cached = loadCachedQuotes();
+    const quotes = {};
+    const missing = [];
+    for (const c of candidates) {
+      if (cached[c.ticker]) quotes[c.ticker] = cached[c.ticker];
+      else missing.push(c.ticker);
+    }
+    let enrichment = { rateLimited: false, stale: false };
+    if (missing.length && hasLivePricing(keys)) {
+      enrichment = await getQuotes(missing, keys);
+      Object.assign(quotes, enrichment.quotes);
+    }
+    const pricesAvailable = Object.keys(quotes).length > 0;
 
     // 3. Compute full metric set + score
     let stocks = candidates.map(c => {
@@ -81,7 +95,7 @@ router.get('/', async (req, res) => {
       stocks,
       universeReady: true,
       count: stats.count,
-      livePricing: hasLivePricing(keys),
+      livePricing: hasLivePricing(keys) || pricesAvailable,
       rateLimited: enrichment.rateLimited,
       stale: enrichment.stale,
     });

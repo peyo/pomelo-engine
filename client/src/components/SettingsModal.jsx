@@ -57,10 +57,15 @@ export default function SettingsModal({ onClose, onSaved }) {
             </div>
           ))}
 
+          <div className="rounded-xl bg-slate-800/60 border border-slate-700 p-3 text-xs text-slate-400 leading-relaxed mb-3">
+            <strong className="text-slate-300">What's included vs. what you bring:</strong> company fundamentals
+            and market pricing are provided by this app — screening works with no keys. You only need your own
+            <strong className="text-slate-300"> Anthropic key</strong> to run Claude's AI deep-dives.
+          </div>
           <div className="rounded-xl bg-amber-500/10 border border-amber-500/20 p-3 text-xs text-amber-300/90 leading-relaxed">
             <strong className="text-amber-300">How your keys are handled:</strong> they are saved only in this
             browser (localStorage) and sent with each request to this app's server, which uses them to call
-            Finnhub / Anthropic on your behalf for that request only. The server does not log or store them.
+            the provider on your behalf for that request only. The server does not log or store them.
             Anyone with access to this browser can read them — clear them when you're done on a shared device.
           </div>
         </div>

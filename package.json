@@ -10,7 +10,8 @@
     "build": "cd client && npm install && npm run build",
     "start": "node server.js",
     "ingest": "node scripts/ingest.js",
-    "ingest:resume": "node scripts/ingest.js --resume"
+    "ingest:resume": "node scripts/ingest.js --resume",
+    "price": "node scripts/price.js"
   },
   "keywords": [],
   "author": "",
