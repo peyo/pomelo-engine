@@ -9,8 +9,8 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selected, setSelected] = useState(null);
-  const [filters, setFilters] = useState({});
-  const [usingMock, setUsingMock] = useState(false);
+  const [filters, setFilters] = useState({ minROIC: 15 });
+  const [meta, setMeta] = useState({ count: 0, livePricing: true, universeReady: true });
 
   const load = useCallback(() => {
     setLoading(true);
@@ -18,7 +18,11 @@ export default function Dashboard() {
     screenStocks(filters)
       .then(data => {
         setStocks(data.stocks);
-        setUsingMock(data.usingMockData);
+        setMeta({
+          count: data.count ?? 0,
+          livePricing: data.livePricing ?? false,
+          universeReady: data.universeReady ?? false,
+        });
       })
       .catch(e => setError(e.message))
       .finally(() => setLoading(false));
@@ -36,11 +40,21 @@ export default function Dashboard() {
             <span className="font-semibold text-slate-100 text-lg">StockScout</span>
             <span className="text-xs px-2 py-0.5 rounded bg-slate-800 text-slate-500 border border-slate-700">AI-powered</span>
           </div>
-          {usingMock && (
-            <div className="flex items-center gap-2 text-xs text-amber-400 bg-amber-400/10 border border-amber-400/20 px-3 py-1.5 rounded-lg">
-              <span>⚠</span> Demo mode — add FMP_API_KEY for live data
-            </div>
-          )}
+          <div className="flex items-center gap-3">
+            {meta.count > 0 && (
+              <span className="text-xs text-slate-500">{meta.count.toLocaleString()} companies in universe</span>
+            )}
+            {!meta.universeReady && (
+              <div className="flex items-center gap-2 text-xs text-amber-400 bg-amber-400/10 border border-amber-400/20 px-3 py-1.5 rounded-lg">
+                <span>⚠</span> Universe empty — run <code className="text-amber-300">node scripts/ingest.js</code>
+              </div>
+            )}
+            {meta.universeReady && !meta.livePricing && (
+              <div className="flex items-center gap-2 text-xs text-amber-400 bg-amber-400/10 border border-amber-400/20 px-3 py-1.5 rounded-lg">
+                <span>⚠</span> No live pricing — add FMP_API_KEY
+              </div>
+            )}
+          </div>
         </div>
       </nav>
 
@@ -48,7 +62,7 @@ export default function Dashboard() {
         {/* Hero */}
         <div>
           <h1 className="text-3xl font-bold text-slate-100">Stock Discovery Engine</h1>
-          <p className="text-slate-500 mt-1">Screen the market quantitatively, then let Claude score business quality from SEC filings.</p>
+          <p className="text-slate-500 mt-1">Screens the full SEC universe on fundamentals from EDGAR filings + live pricing, then lets Claude score business quality from 10-K risk factors.</p>
         </div>
 
         {/* Score legend */}

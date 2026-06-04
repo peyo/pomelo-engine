@@ -1,29 +1,85 @@
 import { Router } from 'express';
-import { screenStocks } from '../services/fmp.js';
-import { scoreQuantitative, totalScore } from '../services/scorer.js';
+import { screenUniverse, universeStats } from '../services/universe.js';
+import { getQuotes, hasLivePricing } from '../services/fmp.js';
+import { computeMetrics } from '../services/edgarFacts.js';
+import { scoreQuantitative, totalScore, sanitizeRoic } from '../services/scorer.js';
 
 const router = Router();
 
 router.get('/', async (req, res) => {
   try {
-    const filters = {
-      maxPE: req.query.maxPE ? Number(req.query.maxPE) : undefined,
-      maxPEG: req.query.maxPEG ? Number(req.query.maxPEG) : undefined,
-      minROIC: req.query.minROIC ? Number(req.query.minROIC) : undefined,
-      sector: req.query.sector || undefined,
-    };
+    const num = k => (req.query[k] != null && req.query[k] !== '' ? Number(req.query[k]) : undefined);
 
-    const stocks = await screenStocks(filters);
-    const results = stocks.map(stock => {
+    // EDGAR-metric filters (applied against the cached universe, no price needed)
+    const edgarFilters = {
+      minROIC: num('minROIC'),
+      maxDebtToEbitda: num('maxDebtToEbitda'),
+      minGrowth: num('minGrowth'),
+    };
+    // Price-based filters (applied after live enrichment)
+    const maxPE = num('maxPE');
+    const maxPEG = num('maxPEG');
+    const sector = req.query.sector || undefined;
+    const limit = num('limit') ?? 40;
+
+    const stats = universeStats();
+    if (!stats.exists || stats.count === 0) {
+      return res.json({ stocks: [], universeReady: false, count: 0 });
+    }
+
+    // 1. Pre-screen the universe on EDGAR metrics
+    const candidates = screenUniverse(edgarFilters, limit);
+
+    // 2. Enrich survivors with live price/market cap
+    const quotes = hasLivePricing()
+      ? await getQuotes(candidates.map(c => c.ticker))
+      : {};
+
+    // 3. Compute full metric set + score
+    let stocks = candidates.map(c => {
+      const quote = quotes[c.ticker];
+      const metrics = quote
+        ? computeMetrics(c.fundamentals, { price: quote.price, marketCap: quote.mktCap })
+        : {};
+
+      const stock = {
+        symbol: c.ticker,
+        companyName: quote?.companyName ?? c.name,
+        sector: quote?.sector ?? null,
+        price: quote?.price ?? null,
+        mktCap: quote?.mktCap ?? null,
+        fiscalYear: c.fiscalYear,
+        // metric fields consumed by the scorer / UI
+        peRatio: metrics.peRatio ?? null,
+        forwardPE: null, // free tier has no forward estimates; trailing only
+        evToEbitda: metrics.evToEbitda ?? null,
+        pegRatio: metrics.pegRatio ?? null,
+        roic: sanitizeRoic(c.metrics.roic),
+        fcfYield: metrics.fcfYield ?? null,
+        revenueGrowth: c.metrics.earningsGrowth ?? null,
+        debtToEbitda: c.metrics.debtToEbitda ?? null,
+        hasLiveData: Boolean(quote),
+      };
+
       const quantScores = scoreQuantitative(stock);
-      const scores = totalScore(quantScores, null);
-      return { ...stock, quantScores, scores };
+      stock.quantScores = quantScores;
+      stock.scores = totalScore(quantScores, null);
+      return stock;
     });
 
-    results.sort((a, b) => b.scores.total - a.scores.total);
-    const rawKey = process.env.FMP_API_KEY ?? '';
-    const hasRealKey = rawKey && !rawKey.startsWith('your_');
-    res.json({ stocks: results, usingMockData: !hasRealKey });
+    // 4. Apply price-based + sector filters post-enrichment
+    if (sector) stocks = stocks.filter(s => s.sector === sector);
+    if (maxPE != null) stocks = stocks.filter(s => s.peRatio != null && s.peRatio <= maxPE);
+    if (maxPEG != null) stocks = stocks.filter(s => s.pegRatio != null && s.pegRatio <= maxPEG);
+
+    stocks.sort((a, b) => b.scores.total - a.scores.total);
+
+    res.json({
+      stocks,
+      universeReady: true,
+      count: stats.count,
+      livePricing: hasLivePricing(),
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

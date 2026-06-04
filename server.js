@@ -1,4 +1,4 @@
-import 'dotenv/config';
+import './services/env.js';
 import express from 'express';
 import cors from 'cors';
 import screenRouter from './routes/screen.js';

@@ -1,63 +1,57 @@
-const SECTORS = ['Technology', 'Industrials', 'Healthcare', 'Financials', 'Energy', 'Consumer Discretionary'];
+const SECTORS = ['Technology', 'Industrials', 'Healthcare', 'Financial Services', 'Energy', 'Consumer Cyclical', 'Consumer Defensive', 'Communication Services', 'Basic Materials', 'Real Estate', 'Utilities'];
+
+const NumField = ({ label, k, filters, set, placeholder, step }) => (
+  <div className="flex items-center gap-2">
+    <label className="text-xs text-slate-500 whitespace-nowrap">{label}</label>
+    <input
+      type="number"
+      step={step}
+      placeholder={placeholder}
+      value={filters[k] ?? ''}
+      onChange={e => set(k, e.target.value)}
+      className="w-20 text-sm bg-slate-800 border border-slate-700 text-slate-300 rounded-lg px-2 py-1.5 focus:outline-none focus:border-indigo-500"
+    />
+  </div>
+);
 
 export default function FilterBar({ filters, onChange }) {
-  const set = (key, value) => onChange({ ...filters, [key]: value || undefined });
+  const set = (key, value) => onChange({ ...filters, [key]: value === '' ? undefined : value });
 
   return (
-    <div className="flex flex-wrap items-center gap-3">
-      <span className="text-xs text-slate-500 uppercase tracking-wider">Filter</span>
-
-      <select
-        value={filters.sector ?? ''}
-        onChange={e => set('sector', e.target.value)}
-        className="text-sm bg-slate-800 border border-slate-700 text-slate-300 rounded-lg px-3 py-1.5 focus:outline-none focus:border-indigo-500"
-      >
-        <option value="">All sectors</option>
-        {SECTORS.map(s => <option key={s} value={s}>{s}</option>)}
-      </select>
-
-      <div className="flex items-center gap-2">
-        <label className="text-xs text-slate-500">Max P/E</label>
-        <input
-          type="number"
-          placeholder="e.g. 30"
-          value={filters.maxPE ?? ''}
-          onChange={e => set('maxPE', e.target.value)}
-          className="w-20 text-sm bg-slate-800 border border-slate-700 text-slate-300 rounded-lg px-2 py-1.5 focus:outline-none focus:border-indigo-500"
-        />
+    <div className="space-y-3">
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+        <span className="text-xs text-indigo-400 uppercase tracking-wider font-medium">EDGAR pre-screen</span>
+        <NumField label="Min ROIC %" k="minROIC" filters={filters} set={set} placeholder="15" />
+        <NumField label="Min growth" k="minGrowth" filters={filters} set={set} placeholder="0.1" step="0.05" />
+        <NumField label="Max debt/EBITDA" k="maxDebtToEbitda" filters={filters} set={set} placeholder="3" step="0.5" />
       </div>
 
-      <div className="flex items-center gap-2">
-        <label className="text-xs text-slate-500">Max PEG</label>
-        <input
-          type="number"
-          placeholder="e.g. 1"
-          step="0.1"
-          value={filters.maxPEG ?? ''}
-          onChange={e => set('maxPEG', e.target.value)}
-          className="w-20 text-sm bg-slate-800 border border-slate-700 text-slate-300 rounded-lg px-2 py-1.5 focus:outline-none focus:border-indigo-500"
-        />
-      </div>
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+        <span className="text-xs text-emerald-400 uppercase tracking-wider font-medium">Live valuation</span>
+        <NumField label="Max P/E" k="maxPE" filters={filters} set={set} placeholder="25" />
+        <NumField label="Max PEG" k="maxPEG" filters={filters} set={set} placeholder="1" step="0.1" />
 
-      <div className="flex items-center gap-2">
-        <label className="text-xs text-slate-500">Min ROIC %</label>
-        <input
-          type="number"
-          placeholder="e.g. 15"
-          value={filters.minROIC ?? ''}
-          onChange={e => set('minROIC', e.target.value)}
-          className="w-20 text-sm bg-slate-800 border border-slate-700 text-slate-300 rounded-lg px-2 py-1.5 focus:outline-none focus:border-indigo-500"
-        />
-      </div>
+        <div className="flex items-center gap-2">
+          <label className="text-xs text-slate-500">Sector</label>
+          <select
+            value={filters.sector ?? ''}
+            onChange={e => set('sector', e.target.value)}
+            className="text-sm bg-slate-800 border border-slate-700 text-slate-300 rounded-lg px-3 py-1.5 focus:outline-none focus:border-indigo-500"
+          >
+            <option value="">All</option>
+            {SECTORS.map(s => <option key={s} value={s}>{s}</option>)}
+          </select>
+        </div>
 
-      {Object.keys(filters).some(k => filters[k]) && (
-        <button
-          onClick={() => onChange({})}
-          className="text-xs text-slate-500 hover:text-slate-300 transition-colors"
-        >
-          Clear filters
-        </button>
-      )}
+        {Object.keys(filters).some(k => filters[k] != null) && (
+          <button
+            onClick={() => onChange({})}
+            className="text-xs text-slate-500 hover:text-slate-300 transition-colors"
+          >
+            Clear all
+          </button>
+        )}
+      </div>
     </div>
   );
 }

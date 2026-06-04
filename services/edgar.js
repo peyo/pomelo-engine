@@ -1,9 +1,8 @@
 import axios from 'axios';
 
-const BASE = 'https://data.sec.gov';
 const HEADERS = { 'User-Agent': 'StockScout research@stockscout.dev' };
 
-// Resolve ticker → CIK using SEC company tickers JSON
+// Resolve ticker → CIK using SEC company tickers JSON (cached)
 let tickerMap = null;
 async function getCIK(ticker) {
   if (!tickerMap) {
@@ -19,40 +18,36 @@ async function getCIK(ticker) {
   return tickerMap[ticker.toUpperCase()] || null;
 }
 
-// Pull the most recent 10-K filing URL
+// Find the most recent 10-K document URL via the modern submissions API.
 async function getLatest10K(cik) {
   const { data } = await axios.get(
-    `${BASE}/cgi-bin/browse-edgar?action=getcompany&CIK=${cik}&type=10-K&dateb=&owner=include&count=5&search_text=&output=atom`,
+    `https://data.sec.gov/submissions/CIK${cik}.json`,
     { headers: HEADERS }
   );
-  // The atom feed has entries with filing-href
-  const match = data.match(/href="(\/Archives\/edgar\/data\/[^"]+\.htm)"/);
-  return match ? `https://www.sec.gov${match[1]}` : null;
-}
+  const recent = data.filings?.recent;
+  if (!recent) return null;
 
-// Fetch company facts for numeric signals (SBC, revenue concentration)
-async function getCompanyFacts(cik) {
-  try {
-    const { data } = await axios.get(
-      `${BASE}/api/xbrl/companyfacts/CIK${cik}.json`,
-      { headers: HEADERS }
-    );
-    return data.facts;
-  } catch {
-    return null;
+  const { form, accessionNumber, primaryDocument } = recent;
+  for (let i = 0; i < form.length; i++) {
+    if (form[i] === '10-K') {
+      const accNoDashes = accessionNumber[i].replace(/-/g, '');
+      const cikNum = String(Number(cik)); // unpadded for the Archives path
+      return `https://www.sec.gov/Archives/edgar/data/${cikNum}/${accNoDashes}/${primaryDocument[i]}`;
+    }
   }
+  return null;
 }
 
-// Extract risk factor text from a 10-K filing page
+// Extract the Risk Factors (Item 1A) section text from a 10-K filing.
 async function getRiskFactors(filingUrl) {
   try {
-    const { data } = await axios.get(filingUrl, { headers: HEADERS, timeout: 10000 });
-    // Strip HTML tags
-    const text = data.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ');
-    // Find risk factors section
-    const riskStart = text.search(/item\s+1a[\s.]+risk\s+factor/i);
-    if (riskStart === -1) return text.slice(0, 4000);
-    return text.slice(riskStart, riskStart + 6000);
+    const { data } = await axios.get(filingUrl, { headers: HEADERS, timeout: 15000 });
+    const text = String(data).replace(/<[^>]+>/g, ' ').replace(/&[a-z]+;/gi, ' ').replace(/\s+/g, ' ');
+    // Locate "Item 1A. Risk Factors" (skip the table-of-contents occurrence)
+    const matches = [...text.matchAll(/item\s+1a[\s.\-—]*risk\s+factors/gi)];
+    const start = matches.length > 1 ? matches[1].index : matches[0]?.index;
+    if (start == null) return text.slice(0, 5000);
+    return text.slice(start, start + 8000);
   } catch {
     return null;
   }
@@ -63,24 +58,10 @@ export async function fetchEdgarContext(ticker) {
     const cik = await getCIK(ticker);
     if (!cik) return { ticker, error: 'CIK not found' };
 
-    const [filingUrl, facts] = await Promise.all([
-      getLatest10K(cik),
-      getCompanyFacts(cik),
-    ]);
-
+    const filingUrl = await getLatest10K(cik);
     const riskText = filingUrl ? await getRiskFactors(filingUrl) : null;
 
-    // Extract SBC from XBRL facts
-    let sbcAmount = null;
-    try {
-      const sbcFact = facts?.['us-gaap']?.ShareBasedCompensation?.units?.USD;
-      if (sbcFact) {
-        const annual = sbcFact.filter(f => f.form === '10-K').slice(-1)[0];
-        sbcAmount = annual?.val || null;
-      }
-    } catch {}
-
-    return { ticker, cik, riskText, sbcAmount, filingUrl };
+    return { ticker, cik, riskText, filingUrl };
   } catch (err) {
     return { ticker, error: err.message };
   }

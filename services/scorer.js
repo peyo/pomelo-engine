@@ -1,3 +1,15 @@
+// ROIC above this is almost always a denominator artifact (negative/tiny
+// invested capital from heavy buybacks). Treat as "very high" rather than
+// reporting a misleading 500%+ figure.
+const ROIC_CAP = 150;
+
+export function sanitizeRoic(roic) {
+  if (roic == null) return null;
+  if (roic > ROIC_CAP) return ROIC_CAP;
+  if (roic < -ROIC_CAP) return null; // deeply negative is not interpretable here
+  return roic;
+}
+
 // Quantitative scoring — returns 0/1/2 per metric, max 10 points
 export function scoreQuantitative(stock) {
   return {

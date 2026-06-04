@@ -49,18 +49,18 @@ export const METRICS = [
   },
   {
     key: 'pe',
-    label: 'Fwd P/E',
+    label: 'P/E (ttm)',
     unit: 'x',
     tooltip: {
-      what: 'Forward Price-to-Earnings — what you pay for each $1 of expected next-year earnings.',
-      formula: 'Stock Price / Next-12-Month EPS Estimate',
+      what: 'Trailing Price-to-Earnings — market cap divided by the last fiscal year\'s net income (from SEC 10-K). What you pay for each $1 of actual earnings.',
+      formula: 'Market Cap / Latest FY Net Income',
       ranges: [
         { label: '< 15x', color: 'green', meaning: 'Historically cheap' },
         { label: '15–25x', color: 'yellow', meaning: 'Fair for stable business' },
         { label: '> 25x', color: 'red', meaning: 'Growth premium required' },
       ],
-      source: 'Yahoo Finance → Summary page',
-      trap: 'Trailing P/E (based on past earnings) is always higher for fast-growing companies. Always compare forward P/E.',
+      source: 'Computed: live market cap (FMP) ÷ net income (SEC EDGAR)',
+      trap: 'This is trailing, not forward. Fast-growing companies look expensive here because earnings already grew past the price — check the PEG ratio alongside it.',
     },
   },
   {

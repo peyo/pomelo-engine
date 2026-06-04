@@ -1,12 +1,22 @@
 import Anthropic from '@anthropic-ai/sdk';
 
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+const RAW_KEY = process.env.ANTHROPIC_API_KEY ?? '';
+const KEY = RAW_KEY && !RAW_KEY.startsWith('your_') ? RAW_KEY : null;
+
+export const hasClaude = () => Boolean(KEY);
+
+const client = KEY ? new Anthropic({ apiKey: KEY }) : null;
 
 const SYSTEM = `You are a financial analyst specializing in equity research.
 You score companies on qualitative factors based on SEC filings and public information.
 Always respond with valid JSON only — no markdown, no explanation outside the JSON.`;
 
 export async function scoreQualitative(ticker, companyName, riskText) {
+  if (!client) {
+    const e = new Error('Claude qualitative scoring unavailable — set ANTHROPIC_API_KEY');
+    e.code = 'NO_CLAUDE_KEY';
+    throw e;
+  }
   const context = riskText
     ? `SEC 10-K Risk Factors excerpt:\n${riskText}`
     : `Company: ${companyName} (${ticker}). Use your training knowledge to assess this company.`;
@@ -42,6 +52,11 @@ ${context}`;
     messages: [{ role: 'user', content: prompt }],
   });
 
-  const text = message.content[0].text.trim();
-  return JSON.parse(text);
+  const raw = message.content[0].text.trim();
+  // Strip ```json … ``` fences if the model added them, then isolate the object
+  const unfenced = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '');
+  const start = unfenced.indexOf('{');
+  const end = unfenced.lastIndexOf('}');
+  const json = start !== -1 && end !== -1 ? unfenced.slice(start, end + 1) : unfenced;
+  return JSON.parse(json);
 }

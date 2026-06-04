@@ -100,7 +100,12 @@ export default function StockDetail({ stock, onClose }) {
           )}
           {error && (
             <div className="rounded-xl bg-red-500/10 border border-red-500/20 p-4 text-sm text-red-400">
-              Qualitative scoring failed: {error}
+              Request failed: {error}
+            </div>
+          )}
+          {!loading && data?.qualError && (
+            <div className="rounded-xl bg-amber-500/10 border border-amber-500/20 p-4 text-sm text-amber-400">
+              {data.qualError}
             </div>
           )}
           {qual && (
