@@ -168,6 +168,16 @@ export function computeMetrics(f, { price, marketCap }) {
     }
   }
 
+  // Financial-company metrics (replaces FCF yield + ROIC which break for banks)
+  // P/B = market cap / book equity — buying below book value is a classic signal
+  if (f.equity > 0 && marketCap) {
+    out.pb = round(marketCap / f.equity, 2);
+  }
+  // ROE = net income / equity — the standard bank efficiency metric
+  if (f.netIncome != null && f.equity > 0) {
+    out.roe = round((f.netIncome / f.equity) * 100, 1);
+  }
+
   return out;
 }
 

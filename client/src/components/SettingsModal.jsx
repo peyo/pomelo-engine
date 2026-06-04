@@ -33,7 +33,7 @@ export default function SettingsModal({ onClose, onSaved }) {
             <div key={f.id}>
               <label className="flex items-center justify-between text-sm font-medium text-slate-200 mb-1">
                 {f.label}
-                <a href={f.url} target="_blank" rel="noopener noreferrer" className="text-xs text-indigo-400 hover:text-indigo-300 font-normal">Get key →</a>
+                <a href={f.url} target="_blank" rel="noopener noreferrer" className="text-xs font-normal hover:opacity-80 transition-opacity" style={{color:'var(--pomelo)'}}>Get key →</a>
               </label>
               <div className="relative">
                 <input
@@ -43,7 +43,7 @@ export default function SettingsModal({ onClose, onSaved }) {
                   placeholder="Paste key…"
                   autoComplete="off"
                   spellCheck={false}
-                  className="w-full text-sm bg-slate-800 border border-slate-700 text-slate-200 rounded-lg px-3 py-2 pr-16 focus:outline-none focus:border-indigo-500 font-mono"
+                  className="w-full text-sm bg-slate-800 border border-slate-700 text-slate-200 rounded-lg px-3 py-2 pr-16 focus:outline-none font-mono"
                 />
                 <button
                   type="button"
@@ -74,7 +74,7 @@ export default function SettingsModal({ onClose, onSaved }) {
           <button onClick={clear} className="text-sm text-slate-500 hover:text-red-400 transition-colors">Clear all keys</button>
           <div className="flex gap-2">
             <button onClick={onClose} className="text-sm px-4 py-2 rounded-lg text-slate-400 hover:text-slate-200 transition-colors">Cancel</button>
-            <button onClick={save} className="text-sm px-4 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-500 transition-colors font-medium">Save keys</button>
+            <button onClick={save} className="text-sm px-4 py-2 rounded-lg font-medium pomelo-btn-solid">Save keys</button>
           </div>
         </div>
       </div>

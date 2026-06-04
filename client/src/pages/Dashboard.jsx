@@ -53,21 +53,21 @@ function FunnelTooltip({ count, shown, limit }) {
           </p>
           <ol className="space-y-2">
             <li className="flex gap-2">
-              <span className="text-indigo-400 font-semibold">1.</span>
+              <span className="text-[var(--pomelo-light)] font-semibold">1.</span>
               <span className="text-slate-400">
                 <strong className="text-slate-200">{count.toLocaleString()} companies</strong> in the
                 universe — every US domestic 10-K filer with usable fundamentals, pre-computed from SEC EDGAR.
               </span>
             </li>
             <li className="flex gap-2">
-              <span className="text-indigo-400 font-semibold">2.</span>
+              <span className="text-[var(--pomelo-light)] font-semibold">2.</span>
               <span className="text-slate-400">
                 <strong className="text-slate-200">EDGAR pre-screen</strong> — filters on price-independent
                 metrics (ROIC, earnings growth, debt/EBITDA). No API cost, runs across the whole universe.
               </span>
             </li>
             <li className="flex gap-2">
-              <span className="text-indigo-400 font-semibold">3.</span>
+              <span className="text-[var(--pomelo-light)] font-semibold">3.</span>
               <span className="text-slate-400">
                 All survivors are <strong className="text-slate-200">enriched from the price cache</strong> —
                 P/E, EV/EBITDA, PEG, and FCF yield computed instantly from stored prices.
@@ -162,12 +162,12 @@ export default function Dashboard() {
   }, [load]);
 
   return (
-    <div className="min-h-screen bg-[#0f1117]">
+    <div className="min-h-screen bg-[#0d1117]">
       {/* Nav */}
       <nav className="border-b border-slate-800 px-6 py-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-bold text-sm">P</div>
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm" style={{background: 'var(--pomelo)', color: '#ffffff'}}>P</div>
             <span className="font-semibold text-slate-100 text-lg">Pomelo Engine</span>
             <span className="text-xs px-2 py-0.5 rounded bg-slate-800 text-slate-500 border border-slate-700">AI-powered</span>
           </div>
@@ -195,7 +195,7 @@ export default function Dashboard() {
             )}
             <button
               onClick={() => setShowSettings(true)}
-              className="relative flex items-center gap-1.5 text-xs text-slate-300 bg-slate-800 hover:bg-slate-700 border border-slate-700 px-3 py-1.5 rounded-lg transition-colors"
+              className="relative flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg transition-colors pomelo-btn"
             >
               <span>⚙</span> Keys
               {!anthropicKey && (
@@ -230,17 +230,17 @@ export default function Dashboard() {
         {/* First-run key prompt — fundamentals & pricing are included; the
             only key a user needs is their own Anthropic key for AI deep-dives. */}
         {!anthropicKey && (
-          <div className="rounded-xl border border-indigo-500/30 bg-indigo-500/10 p-4 flex items-center justify-between gap-4">
+          <div className="rounded-xl border border-[#7eb88a]/25 bg-[#7eb88a]/10 p-4 flex items-center justify-between gap-4">
             <div>
-              <p className="text-sm font-medium text-indigo-200">Add your Anthropic key for AI deep-dives</p>
-              <p className="text-xs text-indigo-300/70 mt-0.5">
+              <p className="text-sm font-medium text-slate-200">Add your Anthropic key for AI deep-dives</p>
+              <p className="text-xs text-slate-400 mt-0.5">
                 Fundamentals and pricing are included — screening works out of the box. To run Claude's
                 qualitative analysis on a company, add your own Anthropic key. It stays in your browser.
               </p>
             </div>
             <button
               onClick={() => setShowSettings(true)}
-              className="shrink-0 text-sm px-4 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-500 transition-colors font-medium"
+              className="shrink-0 text-sm px-4 py-2 rounded-lg font-medium pomelo-btn-solid"
             >
               Add key
             </button>
@@ -250,9 +250,9 @@ export default function Dashboard() {
         {/* Score legend */}
         <div className="grid grid-cols-3 gap-4">
           {[
-            { label: 'Attractive', range: '12–17 pts', color: 'border-green-500/30 bg-green-500/10 text-green-400', desc: 'Strong across most dimensions' },
-            { label: 'Mixed', range: '8–11 pts', color: 'border-yellow-500/30 bg-yellow-500/10 text-yellow-400', desc: 'Strengths offset by real risks' },
-            { label: 'Weak', range: '0–7 pts', color: 'border-red-500/30 bg-red-500/10 text-red-400', desc: 'Multiple red flags' },
+            { label: 'Attractive', range: '≥ 70%', color: 'border-green-500/30 bg-green-500/10 text-green-400', desc: 'Strong across most dimensions' },
+            { label: 'Mixed', range: '45–69%', color: 'border-yellow-500/30 bg-yellow-500/10 text-yellow-400', desc: 'Strengths offset by real risks' },
+            { label: 'Weak', range: '< 45%', color: 'border-red-500/30 bg-red-500/10 text-red-400', desc: 'Multiple red flags' },
           ].map(({ label, range, color, desc }) => (
             <div key={label} className={`rounded-xl border p-4 ${color}`}>
               <div className="flex justify-between items-baseline">
@@ -265,15 +265,12 @@ export default function Dashboard() {
         </div>
 
         {/* Blank cell legend */}
-        <div className="flex items-center gap-5 px-1 text-xs text-slate-500">
-          <span className="flex items-center gap-1.5">
-            <span className="text-slate-700 font-medium text-sm">—</span>
-            metric undefined (e.g. negative equity → no ROIC, declining revenue → no PEG)
-          </span>
-          <span className="flex items-center gap-1.5">
-            <span className="text-slate-600 font-medium text-sm">⋯</span>
-            not yet priced — price job still running
-          </span>
+        <div className="flex items-center gap-1.5 px-1 text-xs text-slate-500">
+          <span className="text-slate-700 font-medium text-sm">—</span>
+          <span>metric undefined (e.g. negative equity → no ROIC, declining revenue → no PEG)</span>
+          <span className="text-slate-600 mx-3">·</span>
+          <span className="text-slate-600 font-medium text-sm">⋯</span>
+          <span>not yet priced — price job still running</span>
           <Tooltip content={
             <div className="space-y-3 normal-case font-normal tracking-normal">
               <p className="text-slate-300 font-medium">Why some cells are blank</p>
@@ -295,7 +292,7 @@ export default function Dashboard() {
               </div>
             </div>
           }>
-            <span className="ml-2 inline-flex items-center justify-center w-4 h-4 rounded-full bg-slate-800 text-slate-500 text-xs hover:bg-slate-700 hover:text-slate-300 transition-colors cursor-help">?</span>
+            <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-slate-800 text-slate-500 text-xs hover:bg-slate-700 hover:text-slate-300 transition-colors cursor-help">?</span>
           </Tooltip>
         </div>
 
@@ -322,7 +319,7 @@ export default function Dashboard() {
 
           {loading && stocks.length === 0 ? (
             <div className="p-12 text-center">
-              <div className="inline-block w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin mb-3" />
+              <div className="inline-block w-8 h-8 border-2 border-t-transparent rounded-full animate-spin mb-3" style={{borderColor: 'var(--pomelo-light)', borderTopColor: 'transparent'}} />
               <p className="text-sm text-slate-500">Screening market…</p>
             </div>
           ) : (

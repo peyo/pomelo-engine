@@ -7,55 +7,71 @@ const colorDot = {
   red: 'bg-red-400',
 };
 
-function MetricContent({ t }) {
+function RangeList({ ranges }) {
+  if (!ranges?.length) return null;
   return (
-    <div className="space-y-3">
-      <p className="text-slate-300 leading-relaxed">{t.what}</p>
-      {t.formula && (
-        <div>
-          <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">Formula</p>
-          <code className="text-xs text-indigo-300 bg-slate-800 px-2 py-1 rounded">{t.formula}</code>
-        </div>
+    <ul className="space-y-1 mt-1">
+      {ranges.map(r => (
+        <li key={r.label} className="flex items-center gap-2 text-xs">
+          <span className={`w-2 h-2 rounded-full shrink-0 ${colorDot[r.color] ?? 'bg-slate-500'}`} />
+          <span className="text-slate-400"><span className="text-slate-200 font-medium">{r.label}</span> — {r.meaning}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function SlotSection({ title, data }) {
+  if (!data) return null;
+  return (
+    <div className="space-y-1">
+      <p className="text-xs font-semibold text-[var(--pomelo)] uppercase tracking-wider">{title}: {data.metric}</p>
+      <p className="text-xs text-slate-400 leading-relaxed">{data.what}</p>
+      {data.formula && data.formula !== '—' && (
+        <p className="text-xs text-slate-500 font-mono">{data.formula}</p>
       )}
-      {t.ranges && (
-        <div>
-          <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">Ranges</p>
-          <div className="space-y-1">
-            {t.ranges.map(r => (
-              <div key={r.label} className="flex items-center gap-2">
-                <span className={`w-2 h-2 rounded-full flex-shrink-0 ${colorDot[r.color]}`} />
-                <span className="text-slate-400"><strong className="text-slate-200">{r.label}</strong> — {r.meaning}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-      {t.signals && (
-        <div>
-          <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">Key Signals</p>
-          <ul className="space-y-1">
-            {t.signals.map(s => (
-              <li key={s} className="text-slate-400 flex gap-1"><span>•</span><span>{s}</span></li>
-            ))}
-          </ul>
-        </div>
-      )}
+      <RangeList ranges={data.ranges} />
+    </div>
+  );
+}
+
+function MetricContent({ t }) {
+  const isDual = Boolean(t.nonFinancial || t.financial);
+
+  if (isDual) {
+    return (
+      <div className="space-y-3">
+        <p className="text-slate-300 leading-relaxed text-xs">{t.what}</p>
+        <SlotSection title="Operating companies" data={t.nonFinancial} />
+        <SlotSection title="Financial companies" data={t.financial} />
+        {t.trap && (
+          <p className="text-xs text-amber-400/80 border-t border-slate-700 pt-2">
+            ⚠ {t.trap}
+          </p>
+        )}
+      </div>
+    );
+  }
+
+  // Legacy single-metric tooltip format
+  return (
+    <div className="space-y-2">
+      {t.what && <p className="text-slate-300 leading-relaxed text-xs">{t.what}</p>}
+      {t.formula && <p className="text-xs text-slate-500 font-mono">{t.formula}</p>}
+      {t.ranges && <RangeList ranges={t.ranges} />}
       {t.trap && (
-        <div className="border-t border-slate-700 pt-2">
-          <p className="text-xs text-amber-400"><strong>Watch out:</strong> {t.trap}</p>
-        </div>
+        <p className="text-xs text-amber-400/80 border-t border-slate-700 pt-2">⚠ {t.trap}</p>
       )}
-      {t.source && (
-        <p className="text-xs text-slate-600">Source: {t.source}</p>
-      )}
+      {t.source && <p className="text-xs text-slate-600">Source: {t.source}</p>}
     </div>
   );
 }
 
 export default function MetricTooltip({ tooltip }) {
+  if (!tooltip) return null;
   return (
     <Tooltip content={<MetricContent t={tooltip} />}>
-      <span className="ml-1 inline-flex items-center justify-center w-4 h-4 rounded-full bg-slate-700 text-slate-400 text-xs hover:bg-slate-600 hover:text-slate-200 transition-colors">?</span>
+      <span className="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full bg-slate-700 text-slate-400 text-[10px] hover:bg-slate-600 hover:text-slate-200 transition-colors cursor-help align-middle">?</span>
     </Tooltip>
   );
 }

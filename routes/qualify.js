@@ -31,10 +31,11 @@ router.get('/:ticker', async (req, res) => {
       ? computeMetrics(fundamentals, { price: quote.price, marketCap: quote.mktCap })
       : {};
 
+    const sector = quote?.sector ?? null;
     const stock = {
       symbol: ticker,
       companyName: quote?.companyName ?? company?.name ?? ticker,
-      sector: quote?.sector ?? null,
+      sector,
       price: quote?.price ?? null,
       mktCap: quote?.mktCap ?? null,
       peRatio: metrics.peRatio ?? null,
@@ -43,6 +44,8 @@ router.get('/:ticker', async (req, res) => {
       pegRatio: metrics.pegRatio ?? null,
       roic: sanitizeRoic(company?.metrics?.roic ?? metrics.roic),
       fcfYield: metrics.fcfYield ?? null,
+      pb: metrics.pb ?? null,
+      roe: metrics.roe ?? null,
       revenueGrowth: company?.metrics?.revenueGrowth ?? metrics.revenueGrowth ?? null,
       debtToEbitda: company?.metrics?.debtToEbitda ?? null,
     };
@@ -61,7 +64,7 @@ router.get('/:ticker', async (req, res) => {
         : `Qualitative scoring failed: ${e.message}`;
     }
 
-    const scores = totalScore(quantScores, qualScores);
+    const scores = totalScore(quantScores, qualScores, sector);
     res.json({ stock, qualScores, qualError, quantScores, scores, edgar: { filingUrl: edgar.filingUrl } });
   } catch (err) {
     res.status(500).json({ error: err.message });

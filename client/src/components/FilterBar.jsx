@@ -9,7 +9,7 @@ const NumField = ({ label, k, filters, set, placeholder, step }) => (
       placeholder={placeholder}
       value={filters[k] ?? ''}
       onChange={e => set(k, e.target.value)}
-      className="w-20 text-sm bg-slate-800 border border-slate-700 text-slate-300 rounded-lg px-2 py-1.5 focus:outline-none focus:border-indigo-500"
+      className="w-20 text-sm bg-slate-800 border border-slate-700 text-slate-300 rounded-lg px-2 py-1.5 focus:outline-none focus:border-[var(--pomelo)]"
     />
   </div>
 );
@@ -20,7 +20,7 @@ export default function FilterBar({ filters, onChange }) {
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-        <span className="text-xs text-indigo-400 uppercase tracking-wider font-medium">EDGAR pre-screen</span>
+        <span className="text-xs text-[var(--pomelo)] uppercase tracking-wider font-medium">EDGAR pre-screen</span>
         <NumField label="Min ROIC %" k="minROIC" filters={filters} set={set} placeholder="15" />
         <NumField label="Min growth" k="minGrowth" filters={filters} set={set} placeholder="0.1" step="0.05" />
         <NumField label="Max debt/EBITDA" k="maxDebtToEbitda" filters={filters} set={set} placeholder="3" step="0.5" />
@@ -30,7 +30,7 @@ export default function FilterBar({ filters, onChange }) {
           <select
             value={filters.minMktCap ?? ''}
             onChange={e => set('minMktCap', e.target.value)}
-            className="text-sm bg-slate-800 border border-slate-700 text-slate-300 rounded-lg px-3 py-1.5 focus:outline-none focus:border-indigo-500"
+            className="text-sm bg-slate-800 border border-slate-700 text-slate-300 rounded-lg px-3 py-1.5 focus:outline-none focus:border-[var(--pomelo)]"
           >
             <option value="">Any</option>
             <option value="300000000">$300M+</option>
@@ -51,7 +51,7 @@ export default function FilterBar({ filters, onChange }) {
           <select
             value={filters.sector ?? ''}
             onChange={e => set('sector', e.target.value)}
-            className="text-sm bg-slate-800 border border-slate-700 text-slate-300 rounded-lg px-3 py-1.5 focus:outline-none focus:border-indigo-500"
+            className="text-sm bg-slate-800 border border-slate-700 text-slate-300 rounded-lg px-3 py-1.5 focus:outline-none focus:border-[var(--pomelo)]"
           >
             <option value="">All</option>
             {SECTORS.map(s => <option key={s} value={s}>{s}</option>)}
@@ -63,7 +63,7 @@ export default function FilterBar({ filters, onChange }) {
           <select
             value={filters.limit ?? '40'}
             onChange={e => set('limit', e.target.value)}
-            className="text-sm bg-slate-800 border border-slate-700 text-slate-300 rounded-lg px-3 py-1.5 focus:outline-none focus:border-indigo-500"
+            className="text-sm bg-slate-800 border border-slate-700 text-slate-300 rounded-lg px-3 py-1.5 focus:outline-none focus:border-[var(--pomelo)]"
           >
             <option value="40">40</option>
             <option value="80">80</option>

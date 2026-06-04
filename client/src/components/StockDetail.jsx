@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { qualifyStock } from '../lib/api';
-import { METRICS, QUAL_CATEGORIES, scoreColor } from '../lib/scoring';
+import { METRICS, QUAL_CATEGORIES, scoreColor, isFinancialSector } from '../lib/scoring';
 import ScoreBar from './ScoreBar';
 import MetricTooltip from './MetricTooltip';
 
@@ -60,7 +60,10 @@ export default function StockDetail({ stock, onClose }) {
           <div className="flex items-center gap-4">
             {scores && (
               <div className="text-right">
-                <p className={`text-3xl font-bold ${scoreColor(scores.total, 17)}`}>{scores.total}<span className="text-lg text-slate-500">/17</span></p>
+                <p className={`text-3xl font-bold ${scoreColor(scores.normalizedScore ?? 0, 100)}`}>
+                  {scores.normalizedScore ?? 0}%
+                </p>
+                <p className="text-xs text-slate-500">{scores.total}/{scores.max ?? 17} pts</p>
                 <p className="text-xs text-slate-500">Total Score</p>
               </div>
             )}
@@ -88,28 +91,57 @@ export default function StockDetail({ stock, onClose }) {
             <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-3">Quantitative Metrics</h3>
             <div className="space-y-3 rounded-xl bg-slate-800/30 p-4">
               {METRICS.map(m => {
-                const raw = m.key === 'pe'
-                  ? (s.forwardPE ?? s.peRatio)
-                  : m.key === 'peg' ? s.pegRatio
-                  : s[m.key];
+                const fin = isFinancialSector(s.sector);
+                const notApplicable = fin && m.key === 'wholeBusiness';
+                let raw, unit, slotMax;
+                if (fin) {
+                  switch (m.key) {
+                    case 'cashQuality':   raw = s.pb;      unit = 'x'; slotMax = 3; break;
+                    case 'efficiency':    raw = s.roe;     unit = '%'; slotMax = 2; break;
+                    case 'wholeBusiness': raw = null;      unit = null; slotMax = 2; break;
+                    case 'growthValue':   raw = s.pegRatio; unit = 'x'; slotMax = 2; break;
+                    case 'earningsPrice': raw = s.forwardPE ?? s.peRatio; unit = 'x'; slotMax = 2; break;
+                  }
+                } else {
+                  switch (m.key) {
+                    case 'cashQuality':   raw = s.fcfYield;  unit = '%'; slotMax = 3; break;
+                    case 'efficiency':    raw = s.roic;      unit = '%'; slotMax = 2; break;
+                    case 'wholeBusiness': raw = s.evToEbitda; unit = 'x'; slotMax = 2; break;
+                    case 'growthValue':   raw = s.pegRatio;  unit = 'x'; slotMax = 2; break;
+                    case 'earningsPrice': raw = s.forwardPE ?? s.peRatio; unit = 'x'; slotMax = 2; break;
+                  }
+                }
                 const sc = qs?.[m.key] ?? 0;
+                // Sub-label shows which actual metric is being used
+                const subLabel = fin
+                  ? (m.financialKey ? m.financialKey.toUpperCase() : 'N/A')
+                  : m.nonFinancialKey?.toUpperCase();
                 return (
                   <div key={m.key} className="flex items-center gap-3">
-                    <span className="text-sm text-slate-300 w-24 shrink-0 flex items-center">
-                      {m.label}
+                    <span className="text-sm text-slate-300 w-32 shrink-0 flex items-center">
+                      <span>
+                        {m.label}
+                        <span className="block text-[10px] text-slate-600">{subLabel}</span>
+                      </span>
                       <MetricTooltip tooltip={m.tooltip} />
                     </span>
                     <div className="flex-1">
-                      <ScoreBar score={sc} max={m.key === 'fcfYield' ? 3 : 2} color={scoreBarColor(sc, m.key === 'fcfYield' ? 3 : 2)} />
+                      {notApplicable
+                        ? <div className="h-2 rounded-full bg-slate-800/50" />
+                        : <ScoreBar score={sc} max={slotMax} color={scoreBarColor(sc, slotMax)} />
+                      }
                     </div>
                     <span className="text-sm text-slate-400 w-16 text-right shrink-0">
-                      {raw != null ? `${raw.toFixed(1)}${m.unit}` : '—'}
+                      {notApplicable
+                        ? <span className="text-slate-700 text-xs">N/A</span>
+                        : (raw != null ? `${raw.toFixed(1)}${unit}` : '—')
+                      }
                     </span>
                   </div>
                 );
               })}
               <div className="border-t border-slate-700 pt-3">
-                <ScoreBar score={scores?.quant ?? 0} max={11} label="Quant total" color="bg-indigo-500" />
+                <ScoreBar score={scores?.quant ?? 0} max={scores?.maxQuant ?? 11} label="Quant total" color="bg-[var(--pomelo)]" />
               </div>
             </div>
           </div>
@@ -117,7 +149,7 @@ export default function StockDetail({ stock, onClose }) {
           {/* Qualitative scores */}
           {loading && (
             <div className="rounded-xl bg-slate-800/30 p-6 text-center">
-              <div className="inline-block w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin mb-2" />
+              <div className="inline-block w-6 h-6 border-2 border-t-transparent rounded-full animate-spin mb-2" style={{borderColor:'var(--pomelo)',borderTopColor:'transparent'}} />
               <p className="text-sm text-slate-400">Claude is analyzing SEC filings…</p>
             </div>
           )}
@@ -133,7 +165,7 @@ export default function StockDetail({ stock, onClose }) {
           )}
           {qual && (
             <div>
-              <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-3">Qualitative Analysis <span className="text-indigo-400 font-normal normal-case ml-1">via Claude</span></h3>
+              <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-3">Qualitative Analysis <span className="font-normal normal-case ml-1" style={{color:'var(--pomelo-rose)'}}>via Claude</span></h3>
               <div className="space-y-4">
                 {QUAL_CATEGORIES.map(cat => {
                   const q = qual[cat.key];
@@ -150,14 +182,14 @@ export default function StockDetail({ stock, onClose }) {
                       <p className="text-sm text-slate-400 leading-relaxed mb-3">{q.summary}</p>
                       <div className="space-y-1">
                         {q.signals?.map(sig => (
-                          <p key={sig} className="text-xs text-slate-500 flex gap-1.5"><span className="text-indigo-400">•</span>{sig}</p>
+                          <p key={sig} className="text-xs text-slate-500 flex gap-1.5"><span style={{color:'var(--pomelo)'}}>•</span>{sig}</p>
                         ))}
                       </div>
                     </div>
                   );
                 })}
                 <div className="rounded-xl bg-slate-800/50 p-4">
-                  <ScoreBar score={scores?.total ?? 0} max={17} label="Total score" color={scoreColor(scores?.total ?? 0, 17).replace('text-', 'bg-')} />
+                  <ScoreBar score={scores?.total ?? 0} max={scores?.max ?? 17} label={`Total score (${scores?.normalizedScore ?? 0}%)`} color={scoreColor(scores?.normalizedScore ?? 0, 100).replace('text-', 'bg-')} />
                 </div>
               </div>
             </div>

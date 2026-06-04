@@ -57,10 +57,11 @@ router.get('/', async (req, res) => {
         ? computeMetrics(c.fundamentals, { price: quote.price, marketCap: quote.mktCap })
         : {};
 
+      const sector = quote?.sector ?? null;
       const stock = {
         symbol: c.ticker,
         companyName: quote?.companyName ?? c.name,
-        sector: quote?.sector ?? null,
+        sector,
         price: quote?.price ?? null,
         mktCap: quote?.mktCap ?? null,
         fiscalYear: c.fiscalYear,
@@ -70,6 +71,8 @@ router.get('/', async (req, res) => {
         pegRatio: metrics.pegRatio ?? null,
         roic: sanitizeRoic(c.metrics.roic),
         fcfYield: metrics.fcfYield ?? null,
+        pb: metrics.pb ?? null,
+        roe: metrics.roe ?? null,
         revenueGrowth: c.metrics.revenueGrowth ?? null,
         debtToEbitda: c.metrics.debtToEbitda ?? null,
         hasLiveData: Boolean(quote),
@@ -77,7 +80,7 @@ router.get('/', async (req, res) => {
 
       const quantScores = scoreQuantitative(stock);
       stock.quantScores = quantScores;
-      stock.scores = totalScore(quantScores, null);
+      stock.scores = totalScore(quantScores, null, sector);
       return stock;
     });
 
@@ -86,7 +89,7 @@ router.get('/', async (req, res) => {
     if (maxPE != null) stocks = stocks.filter(s => s.peRatio != null && s.peRatio <= maxPE);
     if (maxPEG != null) stocks = stocks.filter(s => s.pegRatio != null && s.pegRatio <= maxPEG);
 
-    stocks.sort((a, b) => b.scores.total - a.scores.total);
+    stocks.sort((a, b) => b.scores.normalizedScore - a.scores.normalizedScore);
     stocks = stocks.slice(0, limit); // cap after scoring, not before
 
     const pricesAvailable = Object.keys(quotes).length > 0;

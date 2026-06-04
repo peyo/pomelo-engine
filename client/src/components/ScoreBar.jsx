@@ -1,4 +1,4 @@
-export default function ScoreBar({ score, max, label, color = 'bg-indigo-500' }) {
+export default function ScoreBar({ score, max, label, color = 'bg-[#7c6ff7]' }) {
   const pct = Math.round((score / max) * 100);
   return (
     <div className="flex items-center gap-3">

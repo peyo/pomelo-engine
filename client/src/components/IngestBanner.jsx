@@ -7,20 +7,20 @@ export default function IngestBanner({ status, title, note, unit = 'filers' }) {
   const eta = etaSec != null ? `~${Math.ceil(etaSec / 60)} min left` : null;
 
   return (
-    <div className="rounded-xl border border-indigo-500/30 bg-indigo-500/10 p-4">
+    <div className="rounded-xl border border-[var(--pomelo)]/25 bg-[var(--pomelo)]/10 p-4">
       <div className="flex items-center justify-between mb-2">
-        <p className="text-sm font-medium text-indigo-200 flex items-center gap-2">
-          <span className="inline-block w-3 h-3 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin" />
+        <p className="text-sm font-medium text-slate-200 flex items-center gap-2">
+          <span className="inline-block w-3 h-3 border-2 border-[var(--pomelo)] border-t-transparent rounded-full animate-spin" />
           {title}
         </p>
-        <p className="text-xs text-indigo-300/70">
+        <p className="text-xs text-slate-400">
           {done.toLocaleString()} / {total.toLocaleString()} {unit}{eta ? ` · ${eta}` : ''}
         </p>
       </div>
-      <div className="h-1.5 bg-indigo-900/50 rounded-full overflow-hidden">
-        <div className="h-full bg-indigo-500 rounded-full transition-all duration-1000" style={{ width: `${pct}%` }} />
+      <div className="h-1.5 bg-slate-800/50 rounded-full overflow-hidden">
+        <div className="h-full bg-[var(--pomelo)] rounded-full transition-all duration-1000" style={{ width: `${pct}%` }} />
       </div>
-      {note && <p className="text-xs text-indigo-300/60 mt-1.5">{note}</p>}
+      {note && <p className="text-xs text-slate-500 mt-1.5">{note}</p>}
     </div>
   );
 }

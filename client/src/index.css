@@ -1,7 +1,18 @@
 @import "tailwindcss";
 
+/* Pomelo brand palette
+   --pomelo: #7c6ff7  periwinkle-violet (more vibrant than default indigo,
+             less blue — sits between indigo and violet, unique to Pomelo)
+*/
+:root {
+  --pomelo: #7c6ff7;
+  --pomelo-bg: rgba(124, 111, 247, 0.1);
+  --pomelo-border: rgba(124, 111, 247, 0.25);
+  --pomelo-light: #a89df9;
+}
+
 body {
-  background: #0f1117;
+  background: #0d1117;
   color: #e2e8f0;
   font-family: 'Inter', -apple-system, system-ui, sans-serif;
   margin: 0;
@@ -10,4 +21,26 @@ body {
 
 #root {
   min-height: 100vh;
+}
+
+/* Pomelo utility classes */
+.pomelo-btn {
+  background: var(--pomelo-bg);
+  color: var(--pomelo-light);
+  border: 1px solid var(--pomelo-border);
+  transition: background 0.15s, color 0.15s;
+}
+.pomelo-btn:hover {
+  background: rgba(124, 111, 247, 0.18);
+  color: #c4bbfc;
+}
+
+.pomelo-btn-solid {
+  background: var(--pomelo);
+  color: #ffffff;
+  font-weight: 600;
+  transition: background 0.15s;
+}
+.pomelo-btn-solid:hover {
+  background: #9488f8;
 }
