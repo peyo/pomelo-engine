@@ -209,7 +209,7 @@ export default function Dashboard() {
       <main className="max-w-7xl mx-auto px-6 py-8 space-y-6">
         {/* Hero */}
         <div>
-          <h1 className="text-3xl font-bold text-slate-100">Stock Discovery Engine</h1>
+          <h1 className="text-3xl font-bold text-slate-100">Stock Discovery</h1>
           <p className="text-slate-500 mt-1">Screens the full SEC universe on fundamentals from EDGAR filings + live pricing, then lets Claude score business quality from 10-K risk factors.</p>
         </div>
 
