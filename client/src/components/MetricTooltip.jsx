@@ -56,6 +56,7 @@ function MetricContent({ t }) {
   // Legacy single-metric tooltip format
   return (
     <div className="space-y-2">
+      {t.header && <p className="text-xs font-semibold text-[var(--pomelo)] uppercase tracking-wider">{t.header}</p>}
       {t.what && <p className="text-slate-300 leading-relaxed text-xs">{t.what}</p>}
       {t.formula && <p className="text-xs text-slate-500 font-mono">{t.formula}</p>}
       {t.ranges && <RangeList ranges={t.ranges} />}

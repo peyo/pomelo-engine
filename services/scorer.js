@@ -39,7 +39,8 @@ export function totalScore(quantScores, qualScores, sector) {
   const quant = Object.values(quantScores).reduce((a, b) => a + b, 0);
   const maxQuant = fin ? 9 : 11;
   const qual = qualScores
-    ? qualScores.businessModel.score + qualScores.management.score + qualScores.industryStructure.score
+    ? (qualScores.moat?.score ?? 0) + (qualScores.durability?.score ?? 0) +
+      (qualScores.management?.score ?? 0) + (qualScores.simplicity?.score ?? 0)
     : 0;
   const maxQual = 6;
   const total = quant + qual;

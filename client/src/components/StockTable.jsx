@@ -99,8 +99,8 @@ export default function StockTable({ stocks, onSelect, loading = false }) {
       <table className="w-full border-collapse table-fixed min-w-[1080px]">
         <thead>
           <tr className="border-b border-slate-800">
-            <Th label="Company" width="15%" />
-            <Th label="Sector" width="10%" />
+            <Th label="Company" width="14%" />
+            <Th label="Sector" width="9%" />
             <Th label="Score" sortKey="normalizedScore" width="8%" tooltip={{
               what: 'Quantitative score only — based on the 5 financial metrics. The purple +6 shows how many additional points are available from the qualitative analysis (business model, management, industry structure).',
               ranges: [
@@ -115,7 +115,7 @@ export default function StockTable({ stocks, onSelect, loading = false }) {
             <Th key="wholeBusiness" label="Full Price"      sortKey="wholeBusiness" tooltip={METRICS[2].tooltip} width="10%" />
             <Th key="growthValue"   label="Growth Value"   sortKey="growthValue"   tooltip={METRICS[3].tooltip} width="11%" />
             <Th key="earningsPrice" label="Earnings Price" sortKey="earningsPrice" tooltip={METRICS[4].tooltip} width="11%" />
-            <Th label="Action" width="8%" />
+            <Th label="Action" width="10%" />
           </tr>
         </thead>
         <tbody>

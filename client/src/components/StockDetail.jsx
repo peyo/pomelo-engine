@@ -177,7 +177,10 @@ export default function StockDetail({ stock, onClose }) {
                           {cat.label}
                           <MetricTooltip tooltip={cat.tooltip} />
                         </span>
-                        <ScoreBar score={q.score} max={2} color={scoreBarColor(q.score)} />
+                        <div className="flex items-center gap-2">
+                          <ScoreBar score={q.score} max={cat.max ?? 2} color={scoreBarColor(q.score, cat.max ?? 2)} />
+                          <span className="text-xs text-slate-500 shrink-0">{q.score}/{cat.max ?? 2}</span>
+                        </div>
                       </div>
                       <p className="text-sm text-slate-400 leading-relaxed mb-3">{q.summary}</p>
                       <div className="space-y-1">

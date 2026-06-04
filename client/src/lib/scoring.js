@@ -111,6 +111,7 @@ export const METRICS = [
     nonFinancialUnit: 'x',
     financialUnit: 'x',
     tooltip: {
+      header: 'Growth Value: PEG Ratio',
       what: 'P/E divided by revenue growth rate — adjusts valuation for how fast the company is growing. A company at 40x P/E growing 50% is cheaper than one at 15x P/E growing 5%.',
       formula: 'P/E ÷ YoY Revenue Growth %',
       ranges: [
@@ -130,6 +131,7 @@ export const METRICS = [
     nonFinancialUnit: 'x',
     financialUnit: 'x',
     tooltip: {
+      header: 'Earnings Price: P/E (ttm)',
       what: 'What you\'re paying for each dollar of last year\'s earnings. Trailing — based on actual filed numbers, not analyst estimates.',
       formula: 'Market Cap / Last FY Net Income',
       ranges: [
@@ -145,30 +147,43 @@ export const METRICS = [
 
 export const QUAL_CATEGORIES = [
   {
-    key: 'businessModel',
-    label: 'Business Model',
+    key: 'moat',
+    label: 'Moat',
+    max: 2,
     tooltip: {
-      what: 'How durable and defensible is the business? Assesses revenue concentration, pricing power, and switching costs.',
-      signals: ['Revenue concentration (>20% single customer = fragile)', 'Gross margin stability', 'Customer churn / Net Revenue Retention'],
-      source: 'SEC 10-K → Risk Factors, Customer Concentration disclosures',
+      what: 'Does this business have durable pricing power? Buffett\'s core question — can they raise prices without losing customers?',
+      signals: ['Network effects, switching costs, or regulatory moat', 'Pricing power: can raise prices annually without losing share', 'A well-funded competitor could not take 20% share in 5 years'],
+      source: 'SEC 10-K → Risk Factors, competitive landscape disclosures',
+    },
+  },
+  {
+    key: 'durability',
+    label: 'Durability',
+    max: 2,
+    tooltip: {
+      what: 'Will this business look the same in 10 years? Resistant to technological disruption and competitive obsolescence.',
+      signals: ['Business model is essential or habitual', 'Not dependent on a specific technology cycle', 'No going-concern language or structural decline signals'],
+      source: 'SEC 10-K → Risk Factors, business description',
     },
   },
   {
     key: 'management',
-    label: 'Management Quality',
+    label: 'Management',
+    max: 1,
     tooltip: {
-      what: 'Track record of capital allocation, insider alignment, and investment in future growth.',
-      signals: ['Stock-based comp as % of revenue (<10% = good)', 'Insider buying vs. selling (SEC Form 4)', 'Acquisition history — did deals create or destroy value?'],
-      source: 'SEC Form 4 filings at openinsider.com, 10-K Notes',
+      what: 'Has management demonstrated exceptional capital allocation? Standard governance is not enough — Buffett looks for proven judgment.',
+      signals: ['Smart acquisitions at great prices that created real value', 'Buybacks demonstrably below intrinsic value', 'Founder-led with significant insider ownership'],
+      source: 'SEC Form 4 (insider ownership), 10-K acquisition history',
     },
   },
   {
-    key: 'industryStructure',
-    label: 'Industry Structure',
+    key: 'simplicity',
+    label: 'Simplicity',
+    max: 1,
     tooltip: {
-      what: 'Is the industry growing or declining? Does the company have structural advantages or is it in a commoditizing market?',
-      signals: ['5-year revenue growth trend', 'ASP (average selling price) trend — rising = pricing power', 'Morningstar Moat Rating'],
-      source: 'Morningstar, earnings transcripts, industry reports',
+      what: 'Can a generalist understand and predict this business? Buffett only buys within his circle of competence.',
+      signals: ['Business model explainable in one sentence', 'Revenue predictable without domain expertise', 'No black-box complexity: biotech pipelines, semiconductor cycles, complex financials'],
+      source: 'Business description, revenue concentration, segment complexity',
     },
   },
 ];
