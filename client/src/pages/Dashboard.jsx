@@ -152,9 +152,9 @@ export default function Dashboard() {
         const anyRunning = ing.running || pr?.running;
         if (wasRunning.current && !anyRunning) load(); // a job just finished
         wasRunning.current = anyRunning;
-        timer = setTimeout(poll, anyRunning ? 3000 : 20000);
+        timer = setTimeout(poll, anyRunning ? 3000 : 5000);
       } catch {
-        timer = setTimeout(poll, 20000);
+        timer = setTimeout(poll, 5000);
       }
     };
     poll();
